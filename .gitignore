@@ -1,0 +1,5 @@
+
+*.iml
+*.xml
+.idea/dictionaries
+.idea/$CACHE_FILE$
