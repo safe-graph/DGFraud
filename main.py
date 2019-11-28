@@ -7,18 +7,13 @@ from models.model import GCN, GAT
 import scipy.sparse as sp
 import os
 import time
+import scipy.io as sio
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 tf.reset_default_graph()
 seed = 123
 np.random.seed(seed)
 tf.set_random_seed(seed)
-
-data_size = 9067
-node_size = 9067
-node_embedding = 100  # feature size
-node_encoding = 100  # gcn embedding size
-meta_size = 3  # number of metapath
 
 # GCN layer unit
 gcn_para = [16, 16]
@@ -30,6 +25,12 @@ learning_rate = 0.01
 momentum = 0.9
 
 
+def sample_mask(idx, l):
+    mask = np.zeros(l)
+    mask[idx] = 1
+    return np.array(mask, dtype=np.bool)
+
+
 def read_data():
     index = list(range(9067))
     y = np.loadtxt('data/label.txt')
@@ -39,7 +40,24 @@ def read_data():
     return X_train, y_train, X_test, y_test
 
 
-train_data, train_label, test_data, test_label = read_data()
+def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
+    data = sio.loadmat(path)
+    truelabels, features = data['label'], data['features'].astype(float)
+    N = features.shape[0]
+    rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
+    y = truelabels
+    index = range(len(y))
+    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
+                                                        shuffle=True)
+
+    return rownetworks, features, X_train, y_train, X_test, y_test
+
+
+adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+node_size = features.shape[0]
+node_embedding = features.shape[1]
+node_encoding = 100  # gcn embedding size
+meta_size = len(adj_list)  # number of metapath
 train_size = len(train_data)
 
 
@@ -119,7 +137,7 @@ class Player2Vec(object):
                                          node_encoding).embedding(), [1, self.nodes * self.encoding_size])
                 gcn_emb.append(gcn_out)
             gcn_emb = tf.concat(gcn_emb, 0)
-            assert gcn_emb.shape == [self.meta, self.nodes * self.embedding]
+            assert gcn_emb.shape == [self.meta, self.nodes * self.encoding_size]
             print('GCN embedding over!')
 
         with tf.variable_scope('gat'):
@@ -187,23 +205,12 @@ class Player2Vec(object):
 
 
 if __name__ == "__main__":
+    xdata = features
+    adj_data = adj_list
 
-    xdata = np.load('data/dzdp_user_feature.npy')
-    adj_data = normalize_adj(np.load('data/dzdp_USU_binary_sim.npy'))
-    adj_data_1 = normalize_adj(np.load('data/dzdp_UIU_binary_sim.npy'))
-    adj_data_2 = normalize_adj(np.load('data/dzdp_URU_binary_sim.npy'))
-    # adj_data_3 = normalize_adj(np.load('data/dzdp_UAU_binary_sim.npy'))
-    # adj_data_4 = normalize_adj(np.load('data/dzdp_UIU_URU_binary_sim.npy'))
-    # adj_data_5 = normalize_adj(np.load('data/dzdp_USU_UIU_binary_sim.npy'))
-    # adj_data_6 = normalize_adj(np.load('data/dzdp_USU_URU_binary_sim.npy'))
-    # adj_data_7 = normalize_adj(np.load('data/dzdp_USU_UIU_URU_binary_sim.npy'))
-
-    adj_data = np.array([adj_data, adj_data_1, adj_data_2])
     with tf.Session() as sess:
-
-        net = Player2Vec(session=sess, class_size=2, gcn_output1=gcn_para[0],
-                         gcn_output2=gcn_para[1], meta=meta_size, nodes=node_size, embedding=node_embedding,
-                         encoding=node_encoding)
+        net = Player2Vec(session=sess, class_size=4, gcn_output1=gcn_para[0],gcn_output2=gcn_para[1],
+                         meta=meta_size, nodes=node_size, embedding=node_embedding, encoding=node_encoding)
 
         sess.run(tf.global_variables_initializer())
         #        net.load(sess)
