@@ -1,10 +1,10 @@
 # Play2Vec
 
 ## Dataset
-Preprocessed DBLP can be found in:
-https://pan.baidu.com/s/1Qr2e97MofXsBhUvQqgJqDg
-提取码：6b3h
-(copy from Jhy1993/HAN)
+  Preprocessed DBLP can be found in:
+  https://pan.baidu.com/s/1Qr2e97MofXsBhUvQqgJqDg
+  提取码：6b3h
+  (copy from Jhy1993/HAN)
 
 ## Task Log
 | Date   | Task  |  Assigned to  | Finished |
