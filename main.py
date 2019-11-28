@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 
 from models.model import GCN, GAT
 import scipy.sparse as sp
-from utils.process_dzdp import *
 import os
 import time
 
