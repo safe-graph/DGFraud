@@ -26,12 +26,6 @@ learning_rate = 0.01
 momentum = 0.9
 
 
-def sample_mask(idx, l):
-    mask = np.zeros(l)
-    mask[idx] = 1
-    return np.array(mask, dtype=np.bool)
-
-
 def read_data():
     index = list(range(9067))
     y = np.loadtxt('data/label.txt')
@@ -41,7 +35,7 @@ def read_data():
     return X_train, y_train, X_test, y_test
 
 
-def load_data_dblp(path='DBLP4057_GAT_with_idx_tra200_val_800.mat'):
+def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
@@ -72,137 +66,14 @@ def get_data(ix, int_batch):
     return train_data[ix:end], train_label[ix:end]
 
 
+# symmetrically normalize adjacency matrix
 def normalize_adj(adj):
-    """Symmetrically normalize adjacency matrix."""
     adj = sp.coo_matrix(adj)
     rowsum = np.array(adj.sum(1))
     d_inv_sqrt = np.power(rowsum, -0.5).flatten()
     d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.
     d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
     return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).A
-
-
-# class Player2Vec(object):
-#     def __init__(self, session,
-#                  meta,
-#                  nodes,
-#                  class_size,
-#                  gcn_output1,
-#                  gcn_output2,
-#                  embedding,
-#                  encoding):
-#         self.meta = meta
-#         self.nodes = nodes
-#         self.class_size = class_size
-#         self.gcn_output1 = gcn_output1
-#         self.gcn_output2 = gcn_output2
-#         self.embedding = embedding
-#         self.encoding_size = encoding
-#
-#         self.build_placeholders()
-#
-#         loss, probabilities, features = self.forward_propagation()
-#         self.loss, self.probabilities, self.features = loss, probabilities, features
-#         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
-#                                                          tf.trainable_variables())
-#
-#         self.pred = tf.one_hot(tf.argmax(self.probabilities, 1), class_size)
-#         print(self.pred.shape)
-#         self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1), tf.argmax(self.t, 1))
-#         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, "float"))
-#         print('Forward propagation finished.')
-#
-#         self.sess = session
-#         self.optimizer = tf.train.AdamOptimizer(self.lr)
-#         gradients = self.optimizer.compute_gradients(self.loss + self.l2)
-#         capped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gradients if grad is not None]
-#         self.train_op = self.optimizer.apply_gradients(capped_gradients)
-#         self.init = tf.global_variables_initializer()
-#         print('Backward propagation finished.')
-#
-#     def build_placeholders(self):
-#         self.a = tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj')
-#         self.x = tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf')
-#         self.batch_index = tf.placeholder(tf.int32, [None], 'index')
-#         self.t = tf.placeholder(tf.float32, [None, self.class_size], 'labels')
-#         self.lr = tf.placeholder(tf.float32, [], 'learning_rate')
-#         self.mom = tf.placeholder(tf.float32, [], 'momentum')
-#
-#     def forward_propagation(self):
-#         with tf.variable_scope('gcn'):
-#             x = self.x
-#             A = tf.reshape(self.a, [self.meta, self.nodes, self.nodes])
-#             gcn_emb = []
-#             for i in range(self.meta):
-#                 gcn_out = tf.reshape(GCN(x, A[i], gcn_para[0], gcn_para[1], node_embedding,
-#                                          node_encoding).embedding(), [1, self.nodes * self.encoding_size])
-#                 gcn_emb.append(gcn_out)
-#             gcn_emb = tf.concat(gcn_emb, 0)
-#             assert gcn_emb.shape == [self.meta, self.nodes * self.encoding_size]
-#             print('GCN embedding over!')
-#
-#         with tf.variable_scope('gat'):
-#             x = gcn_out
-#             x = tf.expand_dims(x, 0)
-#             gat_out = GAT.attention(inputs=x, attention_size=1)
-#             gat_out = tf.reshape(gat_out, [self.nodes, self.encoding_size])
-#             print('GAT embedding over!')
-#
-#         with tf.variable_scope('classification'):
-#             batch_data = tf.matmul(tf.one_hot(self.batch_index, self.nodes), gat_out)
-#             W = tf.get_variable(name='weights', shape=[self.encoding_size, self.class_size],
-#                                 initializer=tf.contrib.layers.xavier_initializer())
-#             b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
-#             tf.transpose(batch_data, perm=[0, 1])
-#             logits = tf.matmul(batch_data, W) + b
-#             loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.t, logits=logits)
-#
-#         return loss, tf.nn.sigmoid(logits), gcn_out[0]
-#
-#     def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
-#         feed_dict = {
-#             self.x: x,
-#             self.a: a,
-#             self.t: t,
-#             self.batch_index: b,
-#             self.lr: learning_rate,
-#             self.mom: momentum
-#         }
-#         outs = self.sess.run(
-#             [self.train_op, self.loss, self.accuracy, self.pred, self.probabilities],
-#             feed_dict=feed_dict)
-#         loss = outs[1]
-#         acc = outs[2]
-#         pred = outs[3]
-#         prob = outs[4]
-#         return loss, acc, pred, prob
-#
-#     def save(self, sess=None):
-#         if not sess:
-#             raise AttributeError("TensorFlow session not provided.")
-#         saver = tf.train.Saver()
-#         save_path = saver.save(sess, "tmp/%s.ckpt" % 'temp')
-#         print("Model saved in file: %s" % save_path)
-#
-#     def load(self, sess=None):
-#         if not sess:
-#             raise AttributeError("TensorFlow session not provided.")
-#         saver = tf.train.Saver()
-#         save_path = "tmp/%s.ckpt" % 'temp'
-#         saver.restore(sess, save_path)
-#         print("Model restored from file: %s" % save_path)
-#
-#     def test(self, x, a, t, b):
-#         feed_dict = {
-#             self.x: x,
-#             self.a: a,
-#             self.t: t,
-#             self.batch_index: b
-#         }
-#         acc, pred, features, probabilities, tags = self.sess.run(
-#             [self.accuracy, self.pred, self.features, self.probabilities, self.correct_prediction],
-#             feed_dict=feed_dict)
-#         return acc, pred, features, probabilities, tags
 
 
 if __name__ == "__main__":

@@ -11,8 +11,8 @@ class Player2Vec(object):
     Parameters:
         meta: meta-path number
         nodes: total nodes number
-        gcn_output1: the first gcn layer units number
-        gcn_output2: the second gcn layer units number
+        gcn_output1: the first gcn layer unit number
+        gcn_output2: the second gcn layer unit number
         embedding: node feature dim
         encoding: nodes representation dim
     '''
