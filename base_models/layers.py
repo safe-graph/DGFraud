@@ -87,7 +87,7 @@ class GraphConvolution(Layer):
 
     def __init__(self, input_dim, output_dim, support, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
-                 featureless=False,norm=False, **kwargs):
+                 featureless=False, norm=False, **kwargs):
         super(GraphConvolution, self).__init__(**kwargs)
 
         self.dropout = dropout
@@ -136,12 +136,40 @@ class GraphConvolution(Layer):
         scale = None
         offset = None
         variance_epsilon = 0.001
-        output = tf.nn.batch_normalization(output,mean, variance, offset, scale, variance_epsilon)
+        output = tf.nn.batch_normalization(output, mean, variance, offset, scale, variance_epsilon)
 
         # bias
         if self.bias:
             output += self.vars['bias']
         if self.norm:
             # return self.act(output)/tf.reduce_sum(self.act(output))
-            return tf.nn.l2_normalize(self.act(output),axis=None,epsilon=1e-12)
+            return tf.nn.l2_normalize(self.act(output), axis=None, epsilon=1e-12)
         return self.act(output)
+
+
+############################
+# Adapted from Jhy1993/HAN #
+############################
+
+class SimpleAttLayer(Layer):
+    def attention(inputs, attention_size, return_weights=False):
+        inputs = tf.expand_dims(inputs, 0)
+        hidden_size = inputs.shape[2].value
+
+        # Trainable parameters
+        w_omega = tf.Variable(tf.random_normal([hidden_size, attention_size], stddev=0.1))
+        b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
+        u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
+
+        with tf.name_scope('v'):
+            v = tf.tanh(tf.tensordot(inputs, w_omega, axes=1) + b_omega)
+
+        vu = tf.tensordot(v, u_omega, axes=1, name='vu')
+        weights = tf.nn.softmax(vu, name='alphas')
+
+        output = tf.reduce_sum(inputs * tf.expand_dims(weights, -1), 1)
+
+        if not return_weights:
+            return output
+        else:
+            return output, weights
