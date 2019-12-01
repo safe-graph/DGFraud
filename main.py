@@ -26,12 +26,6 @@ learning_rate = 0.01
 momentum = 0.9
 
 
-def sample_mask(idx, l):
-    mask = np.zeros(l)
-    mask[idx] = 1
-    return np.array(mask, dtype=np.bool)
-
-
 def read_data():
     index = list(range(9067))
     y = np.loadtxt('data/label.txt')
