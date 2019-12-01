@@ -103,5 +103,3 @@ class GCN(Model):
 
     def embedding(self):
         return self.outputs
-
-

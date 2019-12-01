@@ -2,6 +2,7 @@ import tensorflow as tf
 from base_models.model import GCN
 from base_models.layers import SimpleAttLayer
 
+
 class Player2Vec(object):
     '''
     Player2Vec ('Key Player Identification in Underground Forums
@@ -15,6 +16,7 @@ class Player2Vec(object):
         embedding: node feature dim
         encoding: nodes representation dim
     '''
+
     def __init__(self,
                  session,
                  meta,
