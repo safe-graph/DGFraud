@@ -1,5 +1,7 @@
 import tensorflow as tf
-from base_models.model import GCN, GAT
+from base_models.model import GCN
+from base_models.layers import SimpleAttLayer
+
 
 class Player2Vec(object):
     '''
@@ -14,6 +16,7 @@ class Player2Vec(object):
         embedding: node feature dim
         encoding: nodes representation dim
     '''
+
     def __init__(self,
                  session,
                  meta,
@@ -73,12 +76,10 @@ class Player2Vec(object):
             assert gcn_emb.shape == [self.meta, self.nodes * self.encoding]
             print('GCN embedding over!')
 
-        with tf.variable_scope('gat'):
-            x = gcn_out
-            x = tf.expand_dims(x, 0)
-            gat_out = GAT.attention(inputs=x, attention_size=1)
+        with tf.variable_scope('attention'):
+            gat_out = SimpleAttLayer.attention(inputs=gcn_emb, attention_size=1)
             gat_out = tf.reshape(gat_out, [self.nodes, self.encoding])
-            print('GAT embedding over!')
+            print('Embedding with attention over!')
 
         with tf.variable_scope('classification'):
             batch_data = tf.matmul(tf.one_hot(self.batch_index, self.nodes), gat_out)

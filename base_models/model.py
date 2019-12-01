@@ -6,6 +6,10 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 
+##########################
+# Adapted from tkipf/gcn #
+##########################
+
 class Model(object):
     def __init__(self, **kwargs):
         allowed_kwargs = {'name', 'logging'}
@@ -99,27 +103,3 @@ class GCN(Model):
 
     def embedding(self):
         return self.outputs
-
-
-class GAT():
-    def attention(inputs, attention_size, return_weights=False):
-
-        hidden_size = inputs.shape[2].value
-
-        # Trainable parameters
-        w_omega = tf.Variable(tf.random_normal([hidden_size, attention_size], stddev=0.1))
-        b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
-        u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
-
-        with tf.name_scope('v'):
-            v = tf.tanh(tf.tensordot(inputs, w_omega, axes=1) + b_omega)
-
-        vu = tf.tensordot(v, u_omega, axes=1, name='vu')
-        weights = tf.nn.softmax(vu, name='alphas')
-
-        output = tf.reduce_sum(inputs * tf.expand_dims(weights, -1), 1)
-
-        if not return_weights:
-            return output
-        else:
-            return output, weights
