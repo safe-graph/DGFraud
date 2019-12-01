@@ -8,6 +8,10 @@ FLAGS = flags.FLAGS
 _LAYER_UIDS = {}
 
 
+##########################
+# Adapted from tkipf/gcn #
+##########################
+
 def get_layer_uid(layer_name=''):
     """Helper function, assigns unique layer IDs."""
     if layer_name not in _LAYER_UIDS:
