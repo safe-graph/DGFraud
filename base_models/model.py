@@ -1,8 +1,10 @@
 import numpy as np
 import tensorflow as tf
-from models.layers import *
+from base_models.layers import *
+
 flags = tf.app.flags
 FLAGS = flags.FLAGS
+
 
 class Model(object):
     def __init__(self, **kwargs):
@@ -66,7 +68,7 @@ class Model(object):
 
 
 class GCN(Model):
-    def __init__(self, x ,weighted_adj,dim1,dim2,input_dim,output_dim, **kwargs):
+    def __init__(self, x, weighted_adj, dim1, dim2, input_dim, output_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
 
         self.inputs = x
@@ -80,8 +82,8 @@ class GCN(Model):
     def _build(self):
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
                                             output_dim=self.dim1,
-                                            support = self.adj,
-                                            act= tf.nn.relu,
+                                            support=self.adj,
+                                            act=tf.nn.relu,
                                             dropout=0.0,
                                             sparse_inputs=False,
                                             logging=self.logging,
@@ -89,7 +91,7 @@ class GCN(Model):
 
         self.layers.append(GraphConvolution(input_dim=self.dim1,
                                             output_dim=self.output_dim,
-                                            support = self.adj,
+                                            support=self.adj,
                                             act=tf.nn.relu,
                                             dropout=0.,
                                             logging=self.logging,
@@ -97,17 +99,18 @@ class GCN(Model):
 
     def embedding(self):
         return self.outputs
-    
+
+
 class GAT():
     def attention(inputs, attention_size, return_weights=False):
-        
+
         hidden_size = inputs.shape[2].value
-    
+
         # Trainable parameters
         w_omega = tf.Variable(tf.random_normal([hidden_size, attention_size], stddev=0.1))
         b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
         u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
-    
+
         with tf.name_scope('v'):
             v = tf.tanh(tf.tensordot(inputs, w_omega, axes=1) + b_omega)
 
@@ -115,7 +118,7 @@ class GAT():
         weights = tf.nn.softmax(vu, name='alphas')
 
         output = tf.reduce_sum(inputs * tf.expand_dims(weights, -1), 1)
-    
+
         if not return_weights:
             return output
         else:
