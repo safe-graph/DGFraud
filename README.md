@@ -1,4 +1,5 @@
-# Play2Vec
+# DGFraud
+A graph neural network tool box for fraud detection
 
 ## Dataset
 Preprocessed DBLP can be found in:<br/>
@@ -8,6 +9,10 @@ https://bupteducn-my.sharepoint.com/:u:/g/personal/jhy1993_bupt_edu_cn/Ef6A6m2nj
 ## Task Log
 | Date   | Task  |  Assigned to  | Finished |
 |-------|--------|--------|-------|
+| 12/02 | main.py: code structure refer to /reference/main.py | Yutong |<ul><li>- [ ] </li></ul> | 
+| 12/02 | main.py: move data reading functions to data_loader.py in /utils| Yutong |<ul><li>- [ ] </li></ul> | 
+| 12/02 | main.py: move nor_adj function to utils.py in /utils | Yutong |<ul><li>- [ ] </li></ul> |
+| 12/02 | Improve the header comments format: refer to /reference/gaussian_moments.py and /reference/px_expander.py | Yutong |<ul><li>- [ ] </li></ul> | 
 | 11/25 | Upload required files to make the code run regularly | Yutong |<ul><li>- [x] </li></ul> | 
 | 11/25 | Put the Player2Vec class to a new file named player2vec.py, add header to explain the algorithm logic  | Yutong | <ul><li>- [x] </li></ul> |
 | 11/25 | For each file in /models folder, add comment header to show the copyright and briefly introduce your change if you changed it  | Yutong | <ul><li>- [x] </li></ul> |

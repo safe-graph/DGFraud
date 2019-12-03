@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-ddddddddddddddddd
+
 
 ##########################
 # Adapted from tkipf/gcn #
