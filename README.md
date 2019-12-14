@@ -24,7 +24,7 @@ https://bupteducn-my.sharepoint.com/:u:/g/personal/jhy1993_bupt_edu_cn/Ef6A6m2nj
 |-------|--------|--------|--------|-----------|
 | **SemiGNN** | **A Semi-supervised Graph Attentive Network for Fraud Detection**  | ICDM 2019  |  [Link](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)   |  <ul><li>- [ ] </li></ul> |
 | **Player2Vec** | **Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework**  | CIKM 2019  | [Link](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf) | <ul><li>- [x] </li></ul> |
-| **SpamGCN** | **Spam Review Detection with Graph Convolutional Networks**  | CIKM 2019  | [Link](https://arxiv.org/abs/1908.10679) | <ul><li>- [ ] </li></ul> |
+| **GAS** | **Spam Review Detection with Graph Convolutional Networks**  | CIKM 2019  | [Link](https://arxiv.org/abs/1908.10679) | <ul><li>- [ ] </li></ul> |
 | **FdGars** | **FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System**  | The WebConference 2019 | [Link](https://dl.acm.org/citation.cfm?id=3316586) | <ul><li>- [ ] </li></ul> |
 | **HACUD** | **Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism**  | AAAI 2019 | [Link](https://aaai.org/ojs/index.php/AAAI/article/view/3884) | <ul><li>- [ ] </li></ul> |
 | **GEM** | **Heterogeneous Graph Neural Networks for Malicious Account Detection**  | CIKM 2018 | [Link](https://dl.acm.org/citation.cfm?id=3272010) | <ul><li>- [ ] </li></ul> |
