@@ -2,15 +2,17 @@
 '''
 This code is due to Yutong Deng (@yutongD)
 
-An Algorithms Package for Fraud Detection.
+A graph neural network tool box for fraud detection.
 Example use:
 '''
 import tensorflow as tf
 import argparse
 from algorithms.Player2vec import Player2Vec
+from algorithms.FdGars import FdGars
 import os
 import time
 from utils.data_loader import *
+from utils.utils import *
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
@@ -22,7 +24,7 @@ def arg_parser():
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp]")
 
-    parser.add_argument('--epoch_num', type=int, default=10, help='Number of epochs to train.')
+    parser.add_argument('--epoch_num', type=int, default=2, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
@@ -64,12 +66,15 @@ def load_data(args):
 
 def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
     with tf.Session() as sess:
+        # adj_data = adj_list
+        adj_data = [normalize_adj(adj) for adj in adj_list]
+        meta_size = len(adj_list)
         if args.model == 'Player2vec':
-            adj_data = [normalize_adj(adj) for adj in adj_list]
-            meta_size = len(adj_list)
             net = Player2Vec(session=sess, class_size=paras[2], gcn_output1=args.hidden1,
                              meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
-
+        if args.model == args.model == 'FdGars':
+            net = FdGars(session=sess, class_size=paras[2], gcn_output1=args.hidden1, gcn_output2=args.hidden2,
+                         meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
         sess.run(tf.global_variables_initializer())
         #        net.load(sess)
 
@@ -102,8 +107,8 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
         print("train time=", "{:.5f}".format(t_end - t_start))
         print("Train end!")
 
-        test_acc, test_pred, test_features, test_probabilities, test_tags = net.test(xdata, adj_data, test_label,
-                                                                                     test_data)
+        test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, test_label,
+                                                                      test_data)
 
         print("test acc:", test_acc)
 
