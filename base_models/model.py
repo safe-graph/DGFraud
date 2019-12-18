@@ -72,14 +72,13 @@ class Model(object):
 
 
 class GCN(Model):
-    def __init__(self, x, weighted_adj, dim1, dim2, input_dim, output_dim, **kwargs):
+    def __init__(self, x, weighted_adj, dim1, input_dim, output_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
 
         self.inputs = x
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.dim1 = dim1
-        self.dim2 = dim2
         self.adj = weighted_adj
         self.build()
 
