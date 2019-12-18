@@ -1,10 +1,4 @@
-import tensorflow as tf
-from base_models.model import GCN
-from base_models.layers import SimpleAttLayer
-
-
-class Player2Vec(object):
-    '''
+'''
     Player2Vec ('Key Player Identification in Underground Forums
     over Attributed Heterogeneous Information Network Embedding Framework')
 
@@ -17,20 +11,24 @@ class Player2Vec(object):
         encoding: nodes representation dim
     '''
 
+import tensorflow as tf
+from base_models.model import GCN
+from base_models.layers import SimpleAttLayer
+
+class Player2Vec(object):
+
     def __init__(self,
                  session,
                  meta,
                  nodes,
                  class_size,
                  gcn_output1,
-                 gcn_output2,
                  embedding,
                  encoding):
         self.meta = meta
         self.nodes = nodes
         self.class_size = class_size
         self.gcn_output1 = gcn_output1
-        self.gcn_output2 = gcn_output2
         self.embedding = embedding
         self.encoding = encoding
 
@@ -69,7 +67,7 @@ class Player2Vec(object):
             A = tf.reshape(self.a, [self.meta, self.nodes, self.nodes])
             gcn_emb = []
             for i in range(self.meta):
-                gcn_out = tf.reshape(GCN(x, A[i], self.gcn_output1, self.gcn_output2, self.embedding,
+                gcn_out = tf.reshape(GCN(x, A[i], self.gcn_output1, self.embedding,
                                          self.encoding).embedding(), [1, self.nodes * self.encoding])
                 gcn_emb.append(gcn_out)
             gcn_emb = tf.concat(gcn_emb, 0)

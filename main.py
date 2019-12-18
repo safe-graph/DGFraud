@@ -1,63 +1,48 @@
 # -*- coding:utf-8 -*-
+'''
+This code is due to Yutong Deng (@yutongD)
+
+An Algorithms Package for Fraud Detection.
+Example use:
+'''
 import tensorflow as tf
-import numpy as np
-from sklearn.model_selection import train_test_split
-from algotithm.Player2vec import Player2Vec
-import scipy.sparse as sp
+import argparse
+from algorithms.Player2vec import Player2Vec
 import os
 import time
-import scipy.io as sio
+from utils.data_loader import *
+
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
+# init the common args, expect the model specific args
+def arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='Player2vec')
+    parser.add_argument('--seed', type=int, default=123, help='Random seed.')
+    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp]")
 
-tf.reset_default_graph()
-seed = 123
-np.random.seed(seed)
-tf.set_random_seed(seed)
+    parser.add_argument('--epoch_num', type=int, default=10, help='Number of epochs to train.')
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--momentum', type=int, default=0.9)
+    parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
 
-# GCN layer unit
-gcn_para = [16, 16]
-
-# train
-batch_size = 64
-epoch_num = 1
-learning_rate = 0.01
-momentum = 0.9
-
-
-def read_data():
-    index = list(range(9067))
-    y = np.loadtxt('data/label.txt')
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4,
-                                                        random_state=48, shuffle=True)
-
-    return X_train, y_train, X_test, y_test
+    # GCN args
+    parser.add_argument('--hidden1', default=16, help='Number of units in GCN hidden layer 1.')
+    parser.add_argument('--hidden2', default=16, help='Number of units in GCN hidden layer 2.')
+    parser.add_argument('--gcn_output', default=100, help='gcn output size.')
+    args = parser.parse_args()
+    return args
 
 
-def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
-    data = sio.loadmat(path)
-    truelabels, features = data['label'], data['features'].astype(float)
-    N = features.shape[0]
-    rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
-    y = truelabels
-    index = range(len(y))
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
-                                                        shuffle=True)
-
-    return rownetworks, features, X_train, y_train, X_test, y_test
-
-
-adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
-node_size = features.shape[0]
-node_embedding = features.shape[1]
-node_encoding = 100
-meta_size = len(adj_list)
-train_size = len(train_data)
+def set_env(args):
+    tf.reset_default_graph()
+    np.random.seed(args.seed)
+    tf.set_random_seed(args.seed)
 
 
 # get batch data
-def get_data(ix, int_batch):
+def get_data(ix, int_batch, train_size):
     if ix + int_batch >= train_size:
         ix = train_size - int_batch
         end = train_size
@@ -66,38 +51,39 @@ def get_data(ix, int_batch):
     return train_data[ix:end], train_label[ix:end]
 
 
-# symmetrically normalize adjacency matrix
-def normalize_adj(adj):
-    adj = sp.coo_matrix(adj)
-    rowsum = np.array(adj.sum(1))
-    d_inv_sqrt = np.power(rowsum, -0.5).flatten()
-    d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.
-    d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
-    return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).A
+def load_data(args):
+    if args.dataset_str == 'dblp':
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+    node_size = features.shape[0]
+    node_embedding = features.shape[1]
+    class_size = train_label.shape[1]
+    train_size = len(train_data)
+    paras = [node_size, node_embedding, class_size, train_size]
+    return adj_list, features, train_data, train_label, test_data, test_label, paras
 
 
-if __name__ == "__main__":
-    xdata = features
-    adj_data = adj_list
-
+def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
     with tf.Session() as sess:
-        net = Player2Vec(session=sess, class_size=4, gcn_output1=gcn_para[0], gcn_output2=gcn_para[1],
-                         meta=meta_size, nodes=node_size, embedding=node_embedding, encoding=node_encoding)
+        if args.model == 'Player2vec':
+            adj_data = [normalize_adj(adj) for adj in adj_list]
+            meta_size = len(adj_list)
+            net = Player2Vec(session=sess, class_size=paras[2], gcn_output1=args.hidden1,
+                             meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
 
         sess.run(tf.global_variables_initializer())
         #        net.load(sess)
 
         t_start = time.clock()
-        for epoch in range(epoch_num):
+        for epoch in range(args.epoch_num):
             train_loss = 0
             train_acc = 0
             count = 0
-            for index in range(0, train_size, batch_size):
+            for index in range(0, paras[3], args.batch_size):
                 t = time.clock()
-                batch_data, batch_label = get_data(index, batch_size)
-                loss, acc, pred, prob = net.train(xdata, adj_data, batch_label,
-                                                  batch_data, learning_rate,
-                                                  momentum)
+                batch_data, batch_label = get_data(index, args.batch_size, paras[3])
+                loss, acc, pred, prob = net.train(features, adj_data, batch_label,
+                                                  batch_data, args.learning_rate,
+                                                  args.momentum)
 
                 if index % 1 == 0:
                     print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc), "time=",
@@ -120,3 +106,10 @@ if __name__ == "__main__":
                                                                                      test_data)
 
         print("test acc:", test_acc)
+
+
+if __name__ == "__main__":
+    args = arg_parser()
+    set_env(args)
+    adj_list, features, train_data, train_label, test_data, test_label, paras = load_data(args)
+    train(args, adj_list, features, train_data, train_label, test_data, test_label, paras)
