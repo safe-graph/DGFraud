@@ -20,7 +20,7 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='Player2vec')
+    parser.add_argument('--model', type=str, default='FdGars')
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp]")
 
@@ -32,7 +32,7 @@ def arg_parser():
     # GCN args
     parser.add_argument('--hidden1', default=16, help='Number of units in GCN hidden layer 1.')
     parser.add_argument('--hidden2', default=16, help='Number of units in GCN hidden layer 2.')
-    parser.add_argument('--gcn_output', default=100, help='gcn output size.')
+    parser.add_argument('--gcn_output', default=4, help='gcn output size.')
     args = parser.parse_args()
     return args
 
