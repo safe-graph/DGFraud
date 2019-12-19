@@ -1,33 +1,29 @@
 '''
-    Player2Vec ('Key Player Identification in Underground Forums
-    over Attributed Heterogeneous Information Network Embedding Framework')
+    FdGars ('FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System')
 
     Parameters:
-        meta: meta-path number
         nodes: total nodes number
         gcn_output1: the first gcn layer unit number
         gcn_output2: the second gcn layer unit number
         embedding: node feature dim
-        encoding: nodes representation dim
+        encoding: nodes representation dim (predict class dim)
 '''
 
 import tensorflow as tf
 from base_models.model import GCN
-from base_models.layers import SimpleAttLayer
 from algorithms.base_algorithm import Algorithm
 
 
-class Player2Vec(Algorithm):
+class FdGars(Algorithm):
 
     def __init__(self,
                  session,
-                 meta,
                  nodes,
                  class_size,
                  gcn_output1,
+                 gcn_output2,
                  embedding,
                  encoding):
-        self.meta = meta
         self.nodes = nodes
         self.class_size = class_size
         self.gcn_output1 = gcn_output1
@@ -36,8 +32,8 @@ class Player2Vec(Algorithm):
 
         self.build_placeholders()
 
-        loss, probabilities = self.forward_propagation()
-        self.loss, self.probabilities = loss, probabilities
+        loss, probabilities, features = self.forward_propagation()
+        self.loss, self.probabilities, self.features = loss, probabilities, features
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
@@ -73,21 +69,12 @@ class Player2Vec(Algorithm):
                                          self.encoding).embedding(), [1, self.nodes * self.encoding])
                 gcn_emb.append(gcn_out)
             gcn_emb = tf.concat(gcn_emb, 0)
-            assert gcn_emb.shape == [self.meta, self.nodes * self.encoding]
+            gcn_emb = tf.reshape(gcn_emb, [self.nodes, self.encoding])
             print('GCN embedding over!')
 
-        with tf.variable_scope('attention'):
-            gat_out = SimpleAttLayer.attention(inputs=gcn_emb, attention_size=1)
-            gat_out = tf.reshape(gat_out, [self.nodes, self.encoding])
-            print('Embedding with attention over!')
-
         with tf.variable_scope('classification'):
-            batch_data = tf.matmul(tf.one_hot(self.batch_index, self.nodes), gat_out)
-            W = tf.get_variable(name='weights', shape=[self.encoding, self.class_size],
-                                initializer=tf.contrib.layers.xavier_initializer())
-            b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
-            tf.transpose(batch_data, perm=[0, 1])
-            logits = tf.matmul(batch_data, W) + b
+            batch_data = tf.matmul(tf.one_hot(self.batch_index, self.nodes), gcn_emb)
+            logits = tf.nn.softmax(batch_data)
             loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.t, logits=logits)
 
         return loss, tf.nn.sigmoid(logits)
@@ -117,7 +104,7 @@ class Player2Vec(Algorithm):
             self.t: t,
             self.batch_index: b
         }
-        acc, pred, probabilities, tags = self.sess.run(
+        acc, pred,probabilities, tags = self.sess.run(
             [self.accuracy, self.pred,  self.probabilities, self.correct_prediction],
             feed_dict=feed_dict)
         return acc, pred, probabilities, tags
