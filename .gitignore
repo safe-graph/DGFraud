@@ -1,5 +1,7 @@
 
 *.iml
 *.xml
+/idea/
+/data/
 .idea/dictionaries
 .idea/$CACHE_FILE$

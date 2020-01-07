@@ -22,9 +22,11 @@ class FdGars(Algorithm):
                  class_size,
                  gcn_output1,
                  gcn_output2,
+                 meta,
                  embedding,
                  encoding):
         self.nodes = nodes
+        self.meta = meta
         self.class_size = class_size
         self.gcn_output1 = gcn_output1
         self.embedding = embedding
@@ -32,8 +34,8 @@ class FdGars(Algorithm):
 
         self.build_placeholders()
 
-        loss, probabilities, features = self.forward_propagation()
-        self.loss, self.probabilities, self.features = loss, probabilities, features
+        loss, probabilities = self.forward_propagation()
+        self.loss, self.probabilities= loss, probabilities
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
