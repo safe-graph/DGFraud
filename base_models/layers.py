@@ -333,7 +333,7 @@ class AttentionAggregator(Layer):
 
         # [nodes] x [out_dim]
         user_output = tf.matmul(concate_user_vecs, self.vars['user_weights'])
-        item_output = tf.matmul(concate_item_vecs, self.vars["item_weights"])
+        item_output = tf.matmul(concate_item_vecs, self.vars['item_weights'])
 
         # bias
         if self.bias:
