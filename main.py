@@ -36,7 +36,13 @@ def arg_parser():
     parser.add_argument('--gcn_output', default=4, help='gcn output size.')
 
     # SpamGCN
-    # parser.add_argument('--num sample', default=4, help='gcn output size.')
+    parser.add_argument('--review_num sample', default=7, help='review number.')
+    parser.add_argument('--gcn_dim', type=int, default=5, help='gcn layer size.')
+    parser.add_argument('--encoding1', type=int, default=64)
+    parser.add_argument('--encoding2', type=int, default=64)
+    parser.add_argument('--encoding3', type=int, default=64)
+    parser.add_argument('--encoding4', type=int, default=64)
+
     args = parser.parse_args()
     return args
 
@@ -101,10 +107,10 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                          meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
         if args.model == 'SpamGCN':
             adj_data = adj_list
-            # TO DO: add paras to arg_parser
             net = SpamGCN(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
-                          embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7], review_num=7, encoding1=64,
-                          encoding2=64, encoding3=64, encoding4=64, gcn_dim=5)
+                          embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
+                          encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
+                          encoding4=args.encoding4, gcn_dim=args.gcn_dim)
 
         sess.run(tf.global_variables_initializer())
         #        net.load(sess)

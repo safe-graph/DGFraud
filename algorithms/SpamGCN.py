@@ -19,7 +19,7 @@ from algorithms.base_algorithm import Algorithm
 
 class SpamGCN(Algorithm):
     def __init__(self, session, nodes, class_size, embedding_i, embedding_u, embedding_r, h_u_size, h_i_size,
-                 review_num, encoding1, encoding2, encoding3, encoding4, gcn_dim, meta=1, concat=True, **kwargs):
+                 encoding1, encoding2, encoding3, encoding4, gcn_dim, meta=1, concat=True, **kwargs):
         super().__init__(**kwargs)
         self.meta = meta
         self.nodes = nodes
@@ -27,7 +27,6 @@ class SpamGCN(Algorithm):
         self.embedding_i = embedding_i
         self.embedding_u = embedding_u
         self.embedding_r = embedding_r
-        self.review_num = review_num
         self.encoding1 = encoding1
         self.encoding2 = encoding2
         self.encoding3 = encoding3
@@ -64,7 +63,7 @@ class SpamGCN(Algorithm):
         self.item_user_adj = tf.placeholder(tf.float32, [None, None], 'adjlist4')
         self.review_user_adj = tf.placeholder(tf.float32, [None], 'adjlist5')
         self.review_item_adj = tf.placeholder(tf.float32, [None], 'adjlist6')
-        self.homo_adj = tf.placeholder(tf.float32, [self.review_num, self.review_num], 'comment_adj')
+        self.homo_adj = tf.placeholder(tf.float32, [self.nodes, self.nodes], 'comment_adj')
         self.review_vecs = tf.placeholder(tf.float32, [None, None], 'init_embedding1')
         self.user_vecs = tf.placeholder(tf.float32, [None, None], 'init_embedding2')
         self.item_vecs = tf.placeholder(tf.float32, [None, None], 'init_embedding3')
@@ -106,7 +105,7 @@ class SpamGCN(Algorithm):
 
             batch_data = tf.matmul(tf.one_hot(self.batch_index, self.nodes), concated_hr)
             W = tf.get_variable(name='weights',
-                                shape=[self.encoding1 + 2 * self.encoding2 + 2 * self.review_num + self.review_num,
+                                shape=[self.encoding1 + 2 * self.encoding2 + 2 * self.nodes + self.nodes,
                                        self.class_size],
                                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
