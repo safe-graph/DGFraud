@@ -18,23 +18,9 @@ from algorithms.base_algorithm import Algorithm
 
 
 class SpamGCN(Algorithm):
-    def __init__(self,
-                 session,
-                 nodes,
-                 class_size,
-                 embedding_i,
-                 embedding_u,
-                 embedding_r,
-                 h_u_size,
-                 h_i_size,
-                 review_num,
-                 encoding1,
-                 encoding2,
-                 encoding3,
-                 encoding4,
-                 gcn_dim,
-                 meta=1,
-                 concat=True):
+    def __init__(self, session, nodes, class_size, embedding_i, embedding_u, embedding_r, h_u_size, h_i_size,
+                 review_num, encoding1, encoding2, encoding3, encoding4, gcn_dim, meta=1, concat=True, **kwargs):
+        super().__init__(**kwargs)
         self.meta = meta
         self.nodes = nodes
         self.class_size = class_size
@@ -98,8 +84,7 @@ class SpamGCN(Algorithm):
             h_r = r_aggregator(inputs=None)
 
             iu_aggregator = AttentionAggregator(input_dim1=self.h_u_size, input_dim2=self.h_i_size,
-                                                output_dim=self.encoding3, hid_dim=self.encoding2,
-                                                user_review_adj=self.user_review_adj,
+                                                output_dim=self.encoding3, hid_dim=self.encoding2, user_review_adj=self.user_review_adj,
                                                 user_item_adj=self.user_item_adj,
                                                 item_review_adj=self.item_review_adj, item_user_adj=self.item_user_adj,
                                                 review_vecs=self.review_vecs, user_vecs=self.user_vecs,
