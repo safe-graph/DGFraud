@@ -154,22 +154,8 @@ class GraphConvolution(Layer):
         return self.act(output)
 
 
-class ScaledDotProductAttentionLayer(Layer):
-    def attention(q, k, v, mask):
-        qk = tf.matmul(q, k, transpose_b=True)
-        dk = tf.cast(tf.shape(k)[-1], tf.float32)
-        scaled_attention = qk / tf.math.sqrt(dk)
-
-        if mask is not None:
-            scaled_attention += 1
-
-        weights = tf.nn.softmax(scaled_attention, axis=-1)
-        output = tf.matmul(weights, v)
-
-        return output, weights
-
-
 class SimpleAttLayer(Layer):
+    """Simple attention layer."""
     def attention(inputs, attention_size, return_weights=False):
         inputs = tf.expand_dims(inputs, 0)
         hidden_size = inputs.shape[2].value
@@ -193,7 +179,33 @@ class SimpleAttLayer(Layer):
             return output, weights
 
 
+class ScaledDotProductAttentionLayer(Layer):
+    """ AttentionLayer is a function f : hkey × Hval → hval which maps
+    a feature vector hkey and the set of candidates’ feature vectors
+    Hval to an weighted sum of elements in Hval.
+
+    Attention values here are calculated by the scaled dot-product attention.
+    """
+
+    def attention(q, k, v, mask):
+        qk = tf.matmul(q, k, transpose_b=True)
+        dk = tf.cast(tf.shape(k)[-1], tf.float32)
+        scaled_attention = qk / tf.math.sqrt(dk)
+
+        if mask is not None:
+            scaled_attention += 1
+
+        weights = tf.nn.softmax(scaled_attention, axis=-1)
+        output = tf.matmul(weights, v)
+
+        return output, weights
+
+
 class ConcatenationAggregator(Layer):
+    """This layer equals to the equation (3) in
+    paper 'Spam Review Detection with Graph Convolutional Networks.'
+    """
+
     def __init__(self, input_dim, output_dim, review_item_adj, review_user_adj,
                  review_vecs, user_vecs, item_vecs, dropout=0., act=tf.nn.relu,
                  name=None, concat=False, **kwargs):
@@ -247,6 +259,9 @@ class ConcatenationAggregator(Layer):
 
 
 class AttentionAggregator(Layer):
+    """This layer equals to equation (5) and equation (8) in
+    paper 'Spam Review Detection with Graph Convolutional Networks.'
+    """
 
     def __init__(self, input_dim1, input_dim2, output_dim, hid_dim, user_review_adj, user_item_adj, item_review_adj,
                  item_user_adj,
@@ -355,6 +370,10 @@ class AttentionAggregator(Layer):
 
 
 class GASConcatenation(Layer):
+    """GCN-based Anti-Spam(GAS) layer for concatenation of comment embedding learned by GCN from the Comment Graph
+     and other embeddings learned in previous operations.
+     """
+
     def __init__(self, review_item_adj, review_user_adj,
                  review_vecs, item_vecs, user_vecs, homo_vecs, name=None, **kwargs):
         super(GASConcatenation, self).__init__(**kwargs)

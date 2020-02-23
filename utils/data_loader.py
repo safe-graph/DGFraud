@@ -70,23 +70,7 @@ def load_data_yelp():
 
 
 def load_data_example():
-    review_vecs = np.array([[1, 0, 0, 1, 0],
-                            [1, 0, 0, 1, 1],
-                            [1, 0, 0, 0, 0],
-                            [0, 1, 0, 0, 1],
-                            [0, 1, 1, 1, 0],
-                            [0, 0, 1, 1, 1],
-                            [1, 1, 0, 1, 1]])
-    user_vecs = np.array([[1, 1, 0, 0, 0, 0, 0],
-                          [0, 0, 1, 0, 0, 0, 0],
-                          [0, 0, 0, 1, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 1, 0],
-                          [0, 0, 0, 0, 1, 0, 1]])
-    item_vecs = np.array([[1, 0, 1, 1, 0, 0, 0],
-                          [0, 1, 0, 0, 1, 0, 0],
-                          [0, 0, 0, 0, 0, 1, 1]])
-    features = [review_vecs, user_vecs, item_vecs]
-
+    # construct U-E-I network
     user_review_adj = [[0, 1], [2], [3], [5], [4, 6]]
     user_review_adj = pad_adjlist(user_review_adj)
     user_item_adj = [[0, 1], [0], [0], [2], [1, 2]]
@@ -98,6 +82,28 @@ def load_data_example():
     review_item_adj = [0, 1, 0, 0, 1, 2, 2]
     review_user_adj = [0, 0, 1, 2, 4, 3, 4]
 
+    # initialize review_vecs
+    review_vecs = np.array([[1, 0, 0, 1, 0],
+                            [1, 0, 0, 1, 1],
+                            [1, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 1],
+                            [0, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1],
+                            [1, 1, 0, 1, 1]])
+
+    # initialize user_vecs and item_vecs with user_review_adj and item_review_adj
+    # for example, u0 has r1 and r0, then we get the first line of user_vecs: [1, 1, 0, 0, 0, 0, 0]
+    user_vecs = np.array([[1, 1, 0, 0, 0, 0, 0],
+                          [0, 0, 1, 0, 0, 0, 0],
+                          [0, 0, 0, 1, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, 0, 1, 0, 1]])
+    item_vecs = np.array([[1, 0, 1, 1, 0, 0, 0],
+                          [0, 1, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 1]])
+    features = [review_vecs, user_vecs, item_vecs]
+
+    # initialize the Comment Graph
     homo_adj = [[1, 0, 0, 0, 1, 1, 1],
                 [1, 0, 0, 0, 1, 1, 0],
                 [0, 0, 0, 1, 1, 1, 0],
