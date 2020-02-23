@@ -1,3 +1,16 @@
+'''
+    SpamGCN ('Spam Review Detection with Graph Convolutional Networks')
+
+    Parameters:
+        nodes: total nodes number
+        class_size: class number
+        embedding_i: item embedding size
+        embedding_u: user embedding size
+        embedding_r: review embedding size
+        gcn_dim: the gcn layer unit number
+'''
+
+
 import tensorflow as tf
 from base_models.model import GCN
 from base_models.layers import SimpleAttLayer, ConcatenationAggregator, AttentionAggregator, GASConcatenation
@@ -76,7 +89,7 @@ class SpamGCN(Algorithm):
 
     def forward_propagation(self):
         with tf.variable_scope('hete_gcn'):
-            r_aggregator = ConcatenationAggregator(input_dim=self.embedding_r + 2 * self.review_num,
+            r_aggregator = ConcatenationAggregator(input_dim=self.embedding_r + self.embedding_u + self.embedding_i,
                                                    output_dim=self.encoding1,
                                                    review_item_adj=self.review_item_adj,
                                                    review_user_adj=self.review_user_adj,
@@ -85,7 +98,8 @@ class SpamGCN(Algorithm):
             h_r = r_aggregator(inputs=None)
 
             iu_aggregator = AttentionAggregator(input_dim1=self.h_u_size, input_dim2=self.h_i_size,
-                                                output_dim=self.encoding3, hid_dim = self.encoding2, user_review_adj=self.user_review_adj,
+                                                output_dim=self.encoding3, hid_dim=self.encoding2,
+                                                user_review_adj=self.user_review_adj,
                                                 user_item_adj=self.user_item_adj,
                                                 item_review_adj=self.item_review_adj, item_user_adj=self.item_user_adj,
                                                 review_vecs=self.review_vecs, user_vecs=self.user_vecs,

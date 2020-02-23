@@ -71,8 +71,11 @@ def load_data(args):
         node_embedding_u = features[1].shape[1]
         node_embedding_i = features[2].shape[1]
         node_size = features[0].shape[0]
-        h_u_size = adj_list[0].shape[1] * (node_embedding_r + node_size)
-        h_i_size = adj_list[2].shape[1] * (node_embedding_r + node_size)
+
+        # node_embedding_i = node_embedding_r = node_size
+        h_u_size = adj_list[0].shape[1] * (node_embedding_r + node_embedding_u)
+        h_i_size = adj_list[2].shape[1] * (node_embedding_r + node_embedding_i)
+
         class_size = train_label.shape[1]
         train_size = len(train_data)
 
