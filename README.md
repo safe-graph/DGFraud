@@ -3,16 +3,17 @@ A graph neural network tool box for fraud detection
 
 ## Dataset
 Preprocessed DBLP can be found in:<br/>
-https://bupteducn-my.sharepoint.com/:u:/g/personal/jhy1993_bupt_edu_cn/Ef6A6m2njZ5CqkTN8QcwU8QBuENpB7eDVJRnsV9cWXWmsA?e=wlErKk <br/>
-(copied from Jhy1993/HAN)<br/> download and put in the /data directory
+链接：https://pan.baidu.com/s/1L8GESaLKvVbM84ffp7h_mA 
+提取码：cz0y <br/>
+(copied data from Jhy1993/HAN)<br/> download and put in the /data directory
 
 ## Task Log
 | Date   | Task  |  Assigned to  | Finished |
 |-------|--------|--------|-------|
 | 02/18 | Run Player2Vec, FdGars and SpamGCN on Yelp spam review data | Yingtong |<ul><li>- [ ] </li></ul> | 
 | 02/18 | Implement SemiGNN | Yutong |<ul><li>- [ ] </li></ul> | 
-| 02/18 | Add comments to all functions | Yutong |<ul><li>- [ ] </li></ul> | 
-| 02/18 | Solve the dblp dataset loading issue | Yutong |<ul><li>- [ ] </li></ul> | 
+| 02/18 | Add comments to all functions | Yutong |<ul><li>- [x] </li></ul> | 
+| 02/18 | Solve the dblp dataset loading issue | Yutong |<ul><li>- [x] </li></ul> | 
 | 12/02 | main.py: code structure refer to /reference/main.py | Yutong |<ul><li>- [x] </li></ul> | 
 | 12/02 | main.py: move data reading functions to data_loader.py in /utils| Yutong |<ul><li>- [x] </li></ul> | 
 | 12/02 | main.py: move nor_adj function to utils.py in /utils | Yutong |<ul><li>- [x] </li></ul> |
