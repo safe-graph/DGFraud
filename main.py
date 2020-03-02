@@ -21,9 +21,9 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='SpamGCN')
+    parser.add_argument('--model', type=str, default='FdGars')
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
     parser.add_argument('--epoch_num', type=int, default=5, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=7)

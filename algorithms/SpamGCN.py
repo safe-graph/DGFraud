@@ -13,7 +13,7 @@
 
 import tensorflow as tf
 from base_models.model import GCN
-from base_models.layers import SimpleAttLayer, ConcatenationAggregator, AttentionAggregator, GASConcatenation
+from base_models.layers import AttentionLayer, ConcatenationAggregator, AttentionAggregator, GASConcatenation
 from algorithms.base_algorithm import Algorithm
 
 

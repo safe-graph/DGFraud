@@ -92,18 +92,19 @@ class Layer(object):
 class GraphConvolution(Layer):
     """Graph convolution layer."""
 
-    def __init__(self, input_dim, output_dim, support, dropout=0.,
+    def __init__(self, input_dim, output_dim, placeholders, i=1, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, norm=False, **kwargs):
         super(GraphConvolution, self).__init__(**kwargs)
 
         self.dropout = dropout
         self.act = act
-        self.support = support
+        self.support = placeholders['a']
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
         self.norm = norm
+        self.i = i
 
         # helper variable for sparse dropout
         self.num_features_nonzero = np.ones(4637, dtype='int32')
@@ -135,7 +136,7 @@ class GraphConvolution(Layer):
                               sparse=self.sparse_inputs)
             else:
                 pre_sup = self.vars['weights_' + str(i)]
-            support = dot(self.support, pre_sup, sparse=False)
+            support = dot(self.support[self.i], pre_sup, sparse=False)
             supports.append(support)
         output = tf.add_n(supports)
         axis = list(range(len(output.get_shape()) - 1))
@@ -154,9 +155,13 @@ class GraphConvolution(Layer):
         return self.act(output)
 
 
-class SimpleAttLayer(Layer):
-    """Simple attention layer."""
-    def attention(inputs, attention_size, return_weights=False):
+class AttentionLayer(Layer):
+    """ AttentionLayer is a function f : hkey × Hval → hval which maps
+    a feature vector hkey and the set of candidates’ feature vectors
+    Hval to an weighted sum of elements in Hval.
+    """
+
+    def attention(inputs, attention_size, v_type, return_weights=False, bias=True, joint_type='weighted_sum'):
         inputs = tf.expand_dims(inputs, 0)
         hidden_size = inputs.shape[2].value
 
@@ -166,28 +171,28 @@ class SimpleAttLayer(Layer):
         u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
 
         with tf.name_scope('v'):
-            v = tf.tanh(tf.tensordot(inputs, w_omega, axes=1) + b_omega)
+            v = tf.tensordot(inputs, w_omega, axes=1)
+            if bias is True:
+                v += b_omega
+            if v_type is 'tanh':
+                v = tf.tanh(v)
+            if v_type is 'relu':
+                v = tf.nn.relu(v)
 
         vu = tf.tensordot(v, u_omega, axes=1, name='vu')
         weights = tf.nn.softmax(vu, name='alphas')
 
-        output = tf.reduce_sum(inputs * tf.expand_dims(weights, -1), 1)
+        if joint_type is 'weighted_sum':
+            output = tf.reduce_sum(inputs * tf.expand_dims(weights, -1), 1)
+        if joint_type is 'concatenation':
+            output = tf.concat(inputs * tf.expand_dims(weights, -1), 1)
 
         if not return_weights:
             return output
         else:
             return output, weights
 
-
-class ScaledDotProductAttentionLayer(Layer):
-    """ AttentionLayer is a function f : hkey × Hval → hval which maps
-    a feature vector hkey and the set of candidates’ feature vectors
-    Hval to an weighted sum of elements in Hval.
-
-    Attention values here are calculated by the scaled dot-product attention.
-    """
-
-    def attention(q, k, v, mask):
+    def scaled_dot_product_attention(q, k, v, mask):
         qk = tf.matmul(q, k, transpose_b=True)
         dk = tf.cast(tf.shape(k)[-1], tf.float32)
         scaled_attention = qk / tf.math.sqrt(dk)
@@ -341,10 +346,12 @@ class AttentionAggregator(Layer):
         concate_item_vecs = tf.reshape(concate_item_vecs, [s2[0], s2[1] * s2[2]])
 
         # attention
-        concate_user_vecs, _ = ScaledDotProductAttentionLayer.attention(q=user_vecs, k=user_vecs, v=concate_user_vecs,
-                                                                        mask=None)
-        concate_item_vecs, _ = ScaledDotProductAttentionLayer.attention(q=item_vecs, k=item_vecs, v=concate_item_vecs,
-                                                                        mask=None)
+        concate_user_vecs, _ = AttentionLayer.scaled_dot_product_attention(q=user_vecs, k=user_vecs,
+                                                                           v=concate_user_vecs,
+                                                                           mask=None)
+        concate_item_vecs, _ = AttentionLayer.scaled_dot_product_attention(q=item_vecs, k=item_vecs,
+                                                                           v=concate_item_vecs,
+                                                                           mask=None)
 
         # [nodes] x [out_dim]
         user_output = tf.matmul(concate_user_vecs, self.vars['user_weights'])
