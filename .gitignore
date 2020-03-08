@@ -3,6 +3,6 @@
 *.xml
 /idea/
 /data/
-.idea/dictionaries
+.idea/dictionariesgit
 .idea/$CACHE_FILE$
-**/__pycache__
+__pycache__/
