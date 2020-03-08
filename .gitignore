@@ -3,5 +3,5 @@
 *.xml
 /idea/
 /data/
-.idea/dictionaries
+.idea/dictionariesgit
 .idea/$CACHE_FILE$

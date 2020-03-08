@@ -92,7 +92,7 @@ class Layer(object):
 class GraphConvolution(Layer):
     """Graph convolution layer."""
 
-    def __init__(self, input_dim, output_dim, placeholders, i=1, dropout=0.,
+    def __init__(self, input_dim, output_dim, placeholders, index=0, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, norm=False, **kwargs):
         super(GraphConvolution, self).__init__(**kwargs)
@@ -104,10 +104,10 @@ class GraphConvolution(Layer):
         self.featureless = featureless
         self.bias = bias
         self.norm = norm
-        self.i = i
+        self.index = index
 
         # helper variable for sparse dropout
-        self.num_features_nonzero = np.ones(4637, dtype='int32')
+        self.num_features_nonzero = placeholders['num_features_nonzero']
 
         with tf.variable_scope(self.name + '_vars'):
             for i in range(1):
@@ -136,7 +136,7 @@ class GraphConvolution(Layer):
                               sparse=self.sparse_inputs)
             else:
                 pre_sup = self.vars['weights_' + str(i)]
-            support = dot(self.support[self.i], pre_sup, sparse=False)
+            support = dot(self.support[self.index], pre_sup, sparse=False) # i改名index 加注释meta graph index
             supports.append(support)
         output = tf.add_n(supports)
         axis = list(range(len(output.get_shape()) - 1))

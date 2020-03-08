@@ -23,4 +23,5 @@ def construct_feed_dict(x, a, t, b, learning_rate, momentum, placeholders):
     feed_dict.update({placeholders['batch_index']: b})
     feed_dict.update({placeholders['lr']: learning_rate})
     feed_dict.update({placeholders['mom']: momentum})
+    feed_dict.update({placeholders['num_features_nonzero']: x[1].shape})
     return feed_dict

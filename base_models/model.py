@@ -72,7 +72,7 @@ class Model(object):
 
 
 class GCN(Model):
-    def __init__(self, placeholders, i, dim1, input_dim, output_dim, **kwargs):
+    def __init__(self, placeholders, index, dim1, input_dim, output_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
 
         self.inputs = placeholders['x']
@@ -80,14 +80,14 @@ class GCN(Model):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.dim1 = dim1
-        self.i = i
+        self.index = index  # index of meta paths
         self.build()
 
     def _build(self):
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
                                             output_dim=self.dim1,
                                             placeholders=self.placeholders,
-                                            i=self.i,
+                                            index=self.index,
                                             act=tf.nn.relu,
                                             dropout=0.0,
                                             sparse_inputs=False,
@@ -97,7 +97,7 @@ class GCN(Model):
         self.layers.append(GraphConvolution(input_dim=self.dim1,
                                             output_dim=self.output_dim,
                                             placeholders=self.placeholders,
-                                            i=self.i,
+                                            index=self.index,
                                             act=tf.nn.relu,
                                             dropout=0.,
                                             logging=self.logging,
