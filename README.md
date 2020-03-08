@@ -10,7 +10,10 @@ Preprocessed DBLP can be found in:<br/>
 ## Task Log
 | Date   | Task  |  Assigned to  | Finished |
 |-------|--------|--------|-------|
-| 02/18 | Run Player2Vec, FdGars and SpamGCN on Yelp spam review data | Yingtong |<ul><li>- [ ] </li></ul> | 
+| 03/04 | Add pycharm helper files and .pyc files to .gitignore and delete them from repo | Yutong |<ul><li>- [ ] </li></ul> | 
+| 03/04 | Change the Player2Vec with multiple meta-graphs as input | Yutong |<ul><li>- [ ] </li></ul> | 
+| 03/04 | Change the hard-coded sparse dropout helper variable | Yutong |<ul><li>- [ ] </li></ul> | 
+| 02/18 | Run Player2Vec, FdGars and SpamGCN on Yelp spam review data | Yingtong |<ul><li>- [x] </li></ul> | 
 | 02/18 | Implement SemiGNN | Yutong |<ul><li>- [ ] </li></ul> | 
 | 02/18 | Add comments to all functions | Yutong |<ul><li>- [x] </li></ul> | 
 | 02/18 | Solve the dblp dataset loading issue | Yutong |<ul><li>- [x] </li></ul> | 
