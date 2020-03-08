@@ -41,7 +41,8 @@ class Player2Vec(Algorithm):
                              'batch_index': tf.placeholder(tf.int32, [None], 'index'),
                              't': tf.placeholder(tf.float32, [None, self.class_size], 'labels'),
                              'lr': tf.placeholder(tf.float32, [], 'learning_rate'),
-                             'mom': tf.placeholder(tf.float32, [], 'momentum')}
+                             'mom': tf.placeholder(tf.float32, [], 'momentum'),
+                             'num_features_nonzero': tf.placeholder(tf.int32)}
 
         loss, probabilities = self.forward_propagation()
         self.loss, self.probabilities = loss, probabilities
