@@ -72,20 +72,22 @@ class Model(object):
 
 
 class GCN(Model):
-    def __init__(self, x, weighted_adj, dim1, input_dim, output_dim, **kwargs):
+    def __init__(self, placeholders, i, dim1, input_dim, output_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
 
-        self.inputs = x
+        self.inputs = placeholders['x']
+        self.placeholders = placeholders
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.dim1 = dim1
-        self.adj = weighted_adj
+        self.i = i
         self.build()
 
     def _build(self):
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
                                             output_dim=self.dim1,
-                                            support=self.adj,
+                                            placeholders=self.placeholders,
+                                            i=self.i,
                                             act=tf.nn.relu,
                                             dropout=0.0,
                                             sparse_inputs=False,
@@ -94,7 +96,8 @@ class GCN(Model):
 
         self.layers.append(GraphConvolution(input_dim=self.dim1,
                                             output_dim=self.output_dim,
-                                            support=self.adj,
+                                            placeholders=self.placeholders,
+                                            i=self.i,
                                             act=tf.nn.relu,
                                             dropout=0.,
                                             logging=self.logging,

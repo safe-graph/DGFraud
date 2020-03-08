@@ -2,6 +2,7 @@ import scipy.io as sio
 import scipy.sparse as sp
 import numpy as np
 
+
 # symmetrically normalize adjacency matrix
 def normalize_adj(adj):
     adj = adj + sp.eye(adj.shape[0])
@@ -12,3 +13,14 @@ def normalize_adj(adj):
     d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
     return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).A
 
+
+def construct_feed_dict(x, a, t, b, learning_rate, momentum, placeholders):
+    """Construct feed dictionary."""
+    feed_dict = dict()
+    feed_dict.update({placeholders['x']: x})
+    feed_dict.update({placeholders['a']: a})
+    feed_dict.update({placeholders['t']: t})
+    feed_dict.update({placeholders['batch_index']: b})
+    feed_dict.update({placeholders['lr']: learning_rate})
+    feed_dict.update({placeholders['mom']: momentum})
+    return feed_dict
