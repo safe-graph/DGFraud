@@ -5,3 +5,4 @@
 /data/
 .idea/dictionariesgit
 .idea/$CACHE_FILE$
+__pycache__/

@@ -9,6 +9,7 @@ import tensorflow as tf
 import argparse
 from algorithms.Player2vec import Player2Vec
 from algorithms.FdGars import FdGars
+from algorithms.SemiGNN import SemiGNN
 from algorithms.SpamGCN import SpamGCN
 import os
 import time
@@ -21,12 +22,12 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='FdGars')
+    parser.add_argument('--model', type=str, default='SemiGNN')
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
     parser.add_argument('--epoch_num', type=int, default=5, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=7)
+    parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
 
@@ -42,6 +43,12 @@ def arg_parser():
     parser.add_argument('--encoding2', type=int, default=64)
     parser.add_argument('--encoding3', type=int, default=64)
     parser.add_argument('--encoding4', type=int, default=64)
+
+    # SemiGNN
+    parser.add_argument('--init_emb_size', default=128, help=' initial node embedding size')
+    parser.add_argument('--semi_encoding1', default=64, help='node attention layer units')
+    parser.add_argument('--semi_encoding2', default=32, help='view attention layer units')
+    parser.add_argument('--semi_encoding3', default=32, help='one-layer perceptron units')
 
     args = parser.parse_args()
     return args
@@ -65,7 +72,8 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'dblp':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+        # adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+        adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
         node_size = features.shape[0]
         node_embedding = features.shape[1]
         class_size = train_label.shape[1]
@@ -111,7 +119,13 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                           embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
                           encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
                           encoding4=args.encoding4, gcn_dim=args.gcn_dim)
-
+        if args.model == 'SemiGNN':
+            adj_nodelists = [matrix_to_adjlist(adj, pad=False) for adj in adj_list]
+            meta_size = len(adj_list)
+            pairs = [random_walk_sampling(adj_nodelists[i], 2, 3) for i in range(meta_size)]
+            net = SemiGNN(session=sess, class_size=paras[2], semi_encoding1=args.semi_encoding1,
+                          semi_encoding2=args.semi_encoding2, semi_encoding3=args.semi_encoding3,
+                          meta=meta_size, nodes=paras[0], embedding=paras[1], init_emb_size=args.init_emb_size)
         sess.run(tf.global_variables_initializer())
         #        net.load(sess)
 
@@ -121,33 +135,56 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             train_acc = 0
             count = 0
             for index in range(0, paras[3], args.batch_size):
-                t = time.clock()
-                batch_data, batch_label = get_data(index, args.batch_size, paras[3])
-                loss, acc, pred, prob = net.train(features, adj_data, batch_label,
-                                                  batch_data, args.learning_rate,
-                                                  args.momentum)
+                if args.model == 'SemiGNN':
+                    adj_data = [pairs_to_matrix(p, paras[0]) for p in pairs]
+                    u_i = []
+                    u_j = []
+                    for adj_nodelist, p in zip(adj_nodelists, pairs):
+                        u_i_t, u_j_t, batch_graph_label, batch_data, batch_sup_label = get_batch_negative_sampling(
+                            index, args.batch_size, p, adj_nodelist, train_label)
+                        u_i.append(u_i_t)
+                        u_j.append(u_j_t)
+                    u_i = np.concatenate(np.array(u_i))
+                    u_j = np.concatenate(np.array(u_j))
+
+                    loss, acc, pred, prob = net.train(features, adj_data, u_i, u_j, batch_graph_label, batch_data,
+                                                      batch_sup_label,
+                                                      args.learning_rate,
+                                                      args.momentum)
+                else:
+                    batch_data, batch_label = get_data(index, args.batch_size, paras[3])
+                    loss, acc, pred, prob = net.train(features, adj_data, batch_label,
+                                                      batch_data, args.learning_rate,
+                                                      args.momentum)
 
                 if index % 1 == 0:
-                    print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc), "time=",
-                          "{:.5f}".format(time.clock() - t))
+                    print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
                 train_loss += loss
                 train_acc += acc
                 count += 1
 
-            train_loss = train_loss / count
-            train_acc = train_acc / count
-            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
-            # if epoch % 10 == 9:
-            #     net.save(sess)
+        train_loss = train_loss / count
+        train_acc = train_acc / count
+        print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
+        # if epoch % 10 == 9:
+        #     net.save(sess)
 
         t_end = time.clock()
         print("train time=", "{:.5f}".format(t_end - t_start))
         print("Train end!")
 
-        test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, test_label,
-                                                                      test_data)
+        if args.model == 'SemiGNN':
+            test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, u_i, u_j,
+                                                                          batch_graph_label,
+                                                                          test_data,
+                                                                          test_label,
+                                                                          args.learning_rate,
+                                                                          args.momentum)
+        else:
+            test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, test_label,
+                                                                          test_data)
 
-        print("test acc:", test_acc)
+    print("test acc:", test_acc)
 
 
 if __name__ == "__main__":

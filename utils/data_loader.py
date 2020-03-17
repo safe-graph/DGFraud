@@ -2,22 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import scipy.io as sio
 import yaml
-
-
-def pad_adjlist(x_data):
-    # Get lengths of each row of data
-    lens = np.array([len(x_data[i]) for i in range(len(x_data))])
-
-    # Mask of valid places in each row
-    mask = np.arange(lens.max()) < lens[:, None]
-
-    # Setup output array and put elements from data into masked positions
-    padded = np.zeros(mask.shape)
-    for i in range(mask.shape[0]):
-        padded[i] = np.random.choice(x_data[i], mask.shape[1])
-    padded[mask] = np.hstack((x_data[:]))
-
-    return padded
+from utils.utils import pad_adjlist
 
 
 def read_data_dzdp():
@@ -38,6 +23,41 @@ def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
     y = truelabels
     index = range(len(y))
     X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
+                                                        shuffle=True)
+
+    return rownetworks, features, X_train, y_train, X_test, y_test
+
+
+def load_example_semi():
+    features = np.array([[1, 1, 0, 0, 0, 0, 0],
+                         [0, 0, 1, 0, 0, 0, 0],
+                         [0, 0, 0, 1, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 1, 0],
+                         [0, 0, 0, 0, 1, 0, 1],
+                         [1, 0, 1, 1, 0, 0, 0],
+                         [0, 1, 0, 0, 1, 0, 0],
+                         [0, 0, 0, 0, 0, 1, 1]
+                         ])
+    N = features.shape[0]
+    rownetworks = [np.array([[1, 0, 0, 1, 0, 1, 1, 1],
+                             [1, 0, 0, 1, 1, 1, 0, 1],
+                             [1, 0, 0, 0, 0, 0, 0, 1],
+                             [0, 1, 0, 0, 1, 1, 1, 0],
+                             [0, 1, 1, 1, 0, 1, 0, 0],
+                             [1, 0, 0, 1, 1, 1, 0, 1],
+                             [1, 0, 0, 0, 0, 0, 0, 1],
+                             [0, 1, 0, 0, 1, 1, 1, 0]]),
+                   np.array([[1, 0, 0, 0, 0, 1, 1, 1],
+                             [0, 1, 0, 0, 1, 1, 0, 0],
+                             [0, 1, 1, 1, 0, 0, 0, 0],
+                             [0, 0, 1, 1, 1, 0, 0, 1],
+                             [1, 1, 0, 1, 1, 0, 0, 0],
+                             [1, 0, 0, 1, 0, 1, 1, 1],
+                             [1, 0, 0, 1, 1, 1, 0, 1],
+                             [1, 0, 0, 0, 0, 0, 0, 1]])]
+    y = np.array([[0, 1], [0, 0], [0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [0, 0]])
+    index = range(len(y))
+    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
                                                         shuffle=True)
 
     return rownetworks, features, X_train, y_train, X_test, y_test
