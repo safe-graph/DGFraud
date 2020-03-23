@@ -4,10 +4,14 @@
 
     Parameters:
         nodes: total nodes number
+        semi_encoding1: node attention layer unit number
+        semi_encoding2: view attention layer unit number
+        semi_encoding3: MLP layer unit number
+        init_emb_size: the initial node embedding
+        meta: view number
         gcn_output1: the first gcn layer unit number
         gcn_output2: the second gcn layer unit number
-        embedding: node feature dim
-        encoding: nodes representation dim (predict class dim)
+        ul: labeled users number
 '''
 
 import tensorflow as tf
@@ -27,7 +31,7 @@ class SemiGNN(Algorithm):
                  semi_encoding3,
                  init_emb_size,
                  meta,
-                 embedding):
+                 ul):
         self.nodes = nodes
         self.meta = meta
         self.class_size = class_size
@@ -35,12 +39,11 @@ class SemiGNN(Algorithm):
         self.semi_encoding2 = semi_encoding2
         self.semi_encoding3 = semi_encoding3
         self.init_emb_size = init_emb_size
-        self.embedding = embedding
+        self.ul = ul
 
         self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, None], 'adj'),
                              'u_i': tf.placeholder(tf.float32, [None, ], 'u_i'),
                              'u_j': tf.placeholder(tf.float32, [None, ], 'u_j'),
-                             'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
                              'batch_index': tf.placeholder(tf.int32, [None], 'index'),
                              'sup_t': tf.placeholder(tf.float32, [None, self.class_size], 'sup_t'),
                              'graph_t': tf.placeholder(tf.float32, [None, 1], 'graph_t'),
@@ -48,8 +51,8 @@ class SemiGNN(Algorithm):
                              'mom': tf.placeholder(tf.float32, [], 'momentum'),
                              'num_features_nonzero': tf.placeholder(tf.int32)}
 
-        loss, probabilities, pred = self.forward_propagation()
-
+        loss, probabilities, pred, check = self.forward_propagation()
+        self.check = check
         self.loss, self.probabilities, self.pred = loss, probabilities, pred
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
@@ -61,7 +64,11 @@ class SemiGNN(Algorithm):
 
         self.sess = session
         self.optimizer = tf.train.AdamOptimizer(self.placeholders['lr'])
-        gradients = self.optimizer.compute_gradients(self.loss + self.l2)
+        a2 = tf.reduce_mean(tf.get_variable(name='loss_weights_2', shape=[1],
+                                            initializer=tf.contrib.layers.xavier_initializer(),
+                                            constraint=tf.keras.constraints.MinMaxNorm(
+                                                min_value=0.0, max_value=1.0)), 0)
+        gradients = self.optimizer.compute_gradients(self.loss + a2 * self.l2)
         capped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gradients if grad is not None]
         self.train_op = self.optimizer.apply_gradients(capped_gradients)
         self.init = tf.global_variables_initializer()
@@ -88,45 +95,54 @@ class SemiGNN(Algorithm):
         with tf.variable_scope('MLP'):
             W1 = tf.get_variable(name='weights_1', shape=[self.semi_encoding2 * self.meta, self.semi_encoding3],
                                  initializer=tf.contrib.layers.xavier_initializer())
-            h3 = tf.matmul(h2, W1)
+            h3 = tf.matmul(h2, W1)  # pair
 
         with tf.variable_scope('loss'):
             batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), h3)
-            W2 = tf.get_variable(name='weights', shape=[self.semi_encoding3, self.class_size],
+            W2 = tf.get_variable(name='weights_2', shape=[self.semi_encoding3, self.class_size],
                                  initializer=tf.contrib.layers.xavier_initializer())
             b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
             tf.transpose(batch_data, perm=[0, 1])
             logits = tf.matmul(batch_data, W2) + b
             prob = tf.nn.sigmoid(logits)
             pred = tf.one_hot(tf.argmax(prob, 1), self.class_size)
+            flag = (tf.cast(tf.reduce_sum(
+                tf.cast(tf.equal(self.placeholders['sup_t'], pred), dtype=tf.int32), 1), dtype=tf.bool))
+            flag = tf.expand_dims(tf.cast(flag, tf.float32), 1)
 
-            loss1 = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['sup_t'], logits=logits)
-            # TO DO
-            # loss1 = -tf.reduce_sum(tf.log(tf.nn.softmax(h3)))
+            check = flag * tf.log(tf.nn.softmax(batch_data))
 
-            u_i_embedding = tf.nn.embedding_lookup(h2, tf.cast(self.placeholders['u_i'], dtype=tf.int32))
-            u_j_embedding = tf.nn.embedding_lookup(h2, tf.cast(self.placeholders['u_j'], dtype=tf.int32))
+            loss1 = -(1 / self.ul) * tf.reduce_sum(
+                flag * tf.log(tf.nn.softmax(batch_data)))  # softmax 出来是0.03 tf.log出来是-3 加起来太大了
+
+            u_i_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_i'], dtype=tf.int32))
+            u_j_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_j'], dtype=tf.int32))
             inner_product = tf.reduce_sum(u_i_embedding * u_j_embedding, axis=1)
             loss2 = -tf.reduce_mean(tf.log_sigmoid(self.placeholders['graph_t'] * inner_product))
 
-            loss = loss1 + loss2
-        return loss, prob, pred
+            a1 = tf.reduce_mean(tf.get_variable(name='loss_weights_1', shape=[1],
+                                                initializer=tf.contrib.layers.xavier_initializer(),
+                                                constraint=tf.keras.constraints.MinMaxNorm(
+                                                    min_value=0.0, max_value=1.0)), 0)
+            loss = a1 * loss1 + (1 - a1) * loss2
+        return loss, prob, pred, check
 
-    def train(self, x, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label, learning_rate=1e-2, momentum=0.9):
-        feed_dict = utils.construct_feed_dict_sg(x, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label,
+    def train(self, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label, learning_rate=1e-2, momentum=0.9):
+        feed_dict = utils.construct_feed_dict_semi(a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label,
                                                  learning_rate, momentum,
                                                  self.placeholders)
         outs = self.sess.run(
-            [self.train_op, self.loss, self.accuracy, self.pred, self.probabilities],
+            [self.train_op, self.loss, self.accuracy, self.pred, self.probabilities, self.check],
             feed_dict=feed_dict)
         loss = outs[1]
         acc = outs[2]
         pred = outs[3]
         prob = outs[4]
-        return loss, acc, pred, prob
+        check = outs[5]
+        return loss, acc, pred, prob, check
 
-    def test(self, x, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label, learning_rate=1e-2, momentum=0.9):
-        feed_dict = utils.construct_feed_dict_sg(x, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label,
+    def test(self, a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label, learning_rate=1e-2, momentum=0.9):
+        feed_dict = utils.construct_feed_dict_semi(a, u_i, u_j, batch_graph_label, batch_data, batch_sup_label,
                                                  learning_rate, momentum,
                                                  self.placeholders)
         acc, pred, probabilities, tags = self.sess.run(

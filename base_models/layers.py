@@ -136,7 +136,7 @@ class GraphConvolution(Layer):
                               sparse=self.sparse_inputs)
             else:
                 pre_sup = self.vars['weights_' + str(i)]
-            support = dot(self.support[self.index], pre_sup, sparse=False)  # i改名index 加注释meta graph index
+            support = dot(self.support[self.index], pre_sup, sparse=False)
             supports.append(support)
         output = tf.add_n(supports)
         axis = list(range(len(output.get_shape()) - 1))
@@ -194,6 +194,7 @@ class AttentionLayer(Layer):
         else:
             return output, weights
 
+    # node-level attention (equation (1) in SemiGNN)
     def node_attention(inputs, encoding, return_weights=False):
         hidden_size = inputs.shape[-1].value
         w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))
@@ -208,6 +209,7 @@ class AttentionLayer(Layer):
         else:
             return output, weights
 
+    # view-level attention (equation (4) in SemiGNN)
     def view_attention(inputs, encoding, meta, return_weights=False):
         hidden_size = inputs.shape[-1].value
         w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))

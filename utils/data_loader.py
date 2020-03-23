@@ -55,7 +55,7 @@ def load_example_semi():
                              [1, 0, 0, 1, 0, 1, 1, 1],
                              [1, 0, 0, 1, 1, 1, 0, 1],
                              [1, 0, 0, 0, 0, 0, 0, 1]])]
-    y = np.array([[0, 1], [0, 0], [0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [0, 0]])
+    y = np.array([[0, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [0, 1]])
     index = range(len(y))
     X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
                                                         shuffle=True)

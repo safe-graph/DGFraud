@@ -63,8 +63,8 @@ class FdGars(Algorithm):
         with tf.variable_scope('gcn'):
             gcn_emb = []
             for i in range(self.meta):
-                gcn_out = tf.reshape(GCN(self.placeholders, i, self.gcn_output1, self.embedding,
-                                         self.encoding).embedding(), [1, self.nodes * self.encoding])
+                gcn_out = tf.reshape(GCN(self.placeholders, self.gcn_output1, self.embedding,
+                                         self.encoding, index=i).embedding(), [1, self.nodes * self.encoding])
                 gcn_emb.append(gcn_out)
             gcn_emb = tf.concat(gcn_emb, 0)
             gcn_emb = tf.reshape(gcn_emb, [self.nodes, self.encoding])
