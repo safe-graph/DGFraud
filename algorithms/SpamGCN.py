@@ -1,6 +1,5 @@
 '''
     SpamGCN ('Spam Review Detection with Graph Convolutional Networks')
-
     Parameters:
         nodes: total nodes number
         class_size: class number
@@ -93,8 +92,8 @@ class SpamGCN(Algorithm):
 
         with tf.variable_scope('homo_gcn'):
             x = self.review_vecs
-            gcn_out = GCN(x, self.homo_adj, self.gcn_dim, self.embedding_r,
-                          self.encoding4).embedding()
+            # gcn_out = GCN(x, self.homo_adj, self.gcn_dim, self.embedding_r,
+            #               self.encoding4).embedding()
         print('Comment graph embedding over!')
 
         with tf.variable_scope('classification'):

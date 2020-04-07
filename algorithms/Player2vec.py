@@ -34,8 +34,6 @@ class Player2Vec(Algorithm):
         self.gcn_output1 = gcn_output1
         self.embedding = embedding
         self.encoding = encoding
-
-        # self.build_placeholders()
         self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
                              'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
                              'batch_index': tf.placeholder(tf.int32, [None], 'index'),
@@ -63,22 +61,14 @@ class Player2Vec(Algorithm):
         self.init = tf.global_variables_initializer()
         print('Backward propagation finished.')
 
-    # def build_placeholders(self):
-    # self.a = tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj')
-    # self.x = tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf')
-    # self.batch_index = tf.placeholder(tf.int32, [None], 'index')
-    # self.t = tf.placeholder(tf.float32, [None, self.class_size], 'labels')
-    # self.lr = tf.placeholder(tf.float32, [], 'learning_rate')
-    # self.mom = tf.placeholder(tf.float32, [], 'momentum')
-
     def forward_propagation(self):
         with tf.variable_scope('gcn'):
             # x = self.x
             # A = tf.reshape(self.a, [self.meta, self.nodes, self.nodes])
             gcn_emb = []
             for i in range(self.meta):
-                gcn_out = tf.reshape(GCN(self.placeholders, i, self.gcn_output1, self.embedding,
-                                         self.encoding).embedding(), [1, self.nodes * self.encoding])
+                gcn_out = tf.reshape(GCN(self.placeholders, self.gcn_output1, self.embedding,
+                                         self.encoding, index=i).embedding(), [1, self.nodes * self.encoding])
                 # gcn_out = tf.reshape(GCN(x, A[i], self.gcn_output1, self.embedding,
                 #                          self.encoding).embedding(), [1, self.nodes * self.encoding])
                 gcn_emb.append(gcn_out)
@@ -102,7 +92,7 @@ class Player2Vec(Algorithm):
 
         return loss, tf.nn.sigmoid(logits)
 
-    def train(self, x, a, t, b, placeholders, learning_rate=1e-2, momentum=0.9):
+    def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)
 
         outs = self.sess.run(
@@ -114,7 +104,7 @@ class Player2Vec(Algorithm):
         prob = outs[4]
         return loss, acc, pred, prob
 
-    def test(self, x, a, t, b, placeholders, learning_rate=1e-2, momentum=0.9):
+    def test(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)
         acc, pred, probabilities, tags = self.sess.run(
             [self.accuracy, self.pred, self.probabilities, self.correct_prediction],

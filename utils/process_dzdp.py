@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import networkx as nx
 from snownlp import SnowNLP
 from gensim import corpora
-from utils.cal_ndcg import ranking_precision_score
+from cal_ndcg import ranking_precision_score
 
 
 def process_raw_text():
@@ -45,7 +45,7 @@ def process_raw_text():
 
 
 def get_user_label():
-    df = pd.read_csv('dzdp/ICDM_REVIEWS_TO_RELEASE_encoding%3Dutf-8.csv')
+    df = pd.read_csv('../dzdp/ICDM_REVIEWS_TO_RELEASE_encoding%3Dutf-8.csv')
 
     label = df[['user', 'label']].values.tolist()
     for i in range(len(label)):
@@ -211,18 +211,18 @@ def user_rank_G():
 
 def user_senti_G():
     df = pd.read_csv('dzdp/ICDM_REVIEWS_TO_RELEASE_encoding%3Dutf-8.csv')
-
+    
     text_seg = process_raw_text()
     for i in range(len(text_seg)):
         text_seg[i] = ' '.join(text_seg[i])
-
+    
     senti = []
     for i in range(len(text_seg)):
         if text_seg[i] == '':
             senti.append(0.5)
         else:
             senti.append(SnowNLP(text_seg[i]).sentiments)
-
+    
     for i in range(len(senti)):
         if senti[i] >= 0.8:
             senti[i] = 2
@@ -230,20 +230,20 @@ def user_senti_G():
             senti[i] = 1
         if senti[i] < 0.3:
             senti[i] = 0
-
+    
     all_user = df[['user']].values.tolist()
     for i in range(9765):
         all_user[i][0] = all_user[i][0].strip('USER')
-
+    
     user = list(set([int(i[0]) for i in all_user]))
     user.sort()
-
+    
     user_senti = dict()
     for u in user:
         user_senti[u] = []
     for i in range(9765):
         user_senti[int(all_user[i][0])].append(senti[i])
-
+    
     G = nx.Graph()
     for u in user:
         G.add_node(u)
@@ -251,7 +251,7 @@ def user_senti_G():
     for k, v in user_senti.items():
         for s in v:
             G.add_edge(k, int(s + 10000))
-
+    
     adj = nx.adjacency_matrix(G).A
     user_senti_adj = adj[0:9067, 9067:]
 

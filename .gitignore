@@ -6,3 +6,5 @@
 .idea/dictionariesgit
 .idea/$CACHE_FILE$
 .idea/dictionaries
+__pycache__/
+

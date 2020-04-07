@@ -72,7 +72,7 @@ class Model(object):
 
 
 class GCN(Model):
-    def __init__(self, placeholders, index, dim1, input_dim, output_dim, **kwargs):
+    def __init__(self, placeholders, dim1, input_dim, output_dim, index=0, **kwargs):
         super(GCN, self).__init__(**kwargs)
 
         self.inputs = placeholders['x']
