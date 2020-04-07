@@ -92,7 +92,7 @@ class Player2Vec(Algorithm):
 
         return loss, tf.nn.sigmoid(logits)
 
-    def train(self, x, a, t, b, placeholders, learning_rate=1e-2, momentum=0.9):
+    def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)
 
         outs = self.sess.run(
@@ -104,7 +104,7 @@ class Player2Vec(Algorithm):
         prob = outs[4]
         return loss, acc, pred, prob
 
-    def test(self, x, a, t, b, placeholders, learning_rate=1e-2, momentum=0.9):
+    def test(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)
         acc, pred, probabilities, tags = self.sess.run(
             [self.accuracy, self.pred, self.probabilities, self.correct_prediction],

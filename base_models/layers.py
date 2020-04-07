@@ -212,7 +212,7 @@ class AttentionLayer(Layer):
     # view-level attention (equation (4) in SemiGNN)
     def view_attention(inputs, encoding, meta, return_weights=False):
         hidden_size = inputs.shape[-1].value
-        w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))
+        w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))  # encoding =4 OOM
         b_omega = tf.Variable(tf.random_normal([encoding], stddev=0.1))
 
         with tf.name_scope('v'):

@@ -27,7 +27,7 @@ def arg_parser():
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
     parser.add_argument('--epoch_num', type=int, default=5, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
 
@@ -45,12 +45,13 @@ def arg_parser():
     parser.add_argument('--encoding4', type=int, default=64)
 
     # SemiGNN
-    parser.add_argument('--init_emb_size', default=128, help=' initial node embedding size')
-    parser.add_argument('--semi_encoding1', default=64, help='node attention layer units')
-    parser.add_argument('--semi_encoding2', default=32, help='view attention layer units')
-    parser.add_argument('--semi_encoding3', default=32, help='one-layer perceptron units')
+    parser.add_argument('--init_emb_size', default=4, help=' initial node embedding size')
+    parser.add_argument('--semi_encoding1', default=3, help='node attention layer units')
+    parser.add_argument('--semi_encoding2', default=2, help='view attention layer units')
+    parser.add_argument('--semi_encoding3', default=4, help='one-layer perceptron units')
     parser.add_argument('--Ul', default=8, help='labeled users number')
-
+    parser.add_argument('--alpha', default=0.5, help='loss alpha')
+    parser.add_argument('--lamtha', default=0.5, help='loss lamtha')
     args = parser.parse_args()
     return args
 
@@ -102,8 +103,6 @@ def load_data(args):
 
 def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
     with tf.Session() as sess:
-        # adj_data = adj_list
-
         if args.model == 'Player2vec':
             adj_data = [normalize_adj(adj) for adj in adj_list]
             meta_size = len(adj_list)
@@ -126,7 +125,8 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             pairs = [random_walks(adj_nodelists[i], 2, 3) for i in range(meta_size)]
             net = SemiGNN(session=sess, class_size=paras[2], semi_encoding1=args.semi_encoding1,
                           semi_encoding2=args.semi_encoding2, semi_encoding3=args.semi_encoding3,
-                          meta=meta_size, nodes=paras[0], init_emb_size=args.init_emb_size, ul=args.Ul)
+                          meta=meta_size, nodes=paras[0], init_emb_size=args.init_emb_size, ul=args.batch_size,
+                          alpha=args.alpha, lamtha=args.lamtha)
             adj_data = [pairs_to_matrix(p, paras[0]) for p in pairs]
             u_i = []
             u_j = []
@@ -134,7 +134,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                 u_i_t, u_j_t, graph_label = get_negative_sampling(p, adj_nodelist)
                 u_i.append(u_i_t)
                 u_j.append(u_j_t)
-            u_i = np.concatenate(np.array(u_i))  # 不同view 为什么要concat
+            u_i = np.concatenate(np.array(u_i))
             u_j = np.concatenate(np.array(u_j))
 
         sess.run(tf.global_variables_initializer())
@@ -144,15 +144,14 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
         for epoch in range(args.epoch_num):
             train_loss = 0
             train_acc = 0
-            count = 0
             for index in range(0, paras[3], args.batch_size):
                 if args.model == 'SemiGNN':
                     batch_data, batch_sup_label = get_data(index, args.batch_size, paras[3])
-                    loss, acc, pred, prob, check = net.train(adj_data, u_i, u_j, graph_label, batch_data,
+                    loss, acc, pred, prob = net.train(adj_data, u_i, u_j, graph_label, batch_data,
                                                       batch_sup_label,
                                                       args.learning_rate,
                                                       args.momentum)
-                else:
+                else:  # model player2vec, SpamGCN or FdGars
                     batch_data, batch_label = get_data(index, args.batch_size, paras[3])
                     loss, acc, pred, prob = net.train(features, adj_data, batch_label,
                                                       batch_data, args.learning_rate,
@@ -160,16 +159,15 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
 
                 if index % 1 == 0:
                     print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
-                    # print(check)
                 train_loss += loss
                 train_acc += acc
-                count += 1
 
-        train_loss = train_loss / count
-        train_acc = train_acc / count
-        print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
-        # if epoch % 10 == 9:
-        #     net.save(sess)
+            train_loss = train_loss / args.batch_size
+            train_acc = train_acc / args.batch_size
+            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss,
+                                                                             train_acc))
+            # if epoch % 10 == 9:
+            #     net.save(sess)
 
         t_end = time.clock()
         print("train time=", "{:.5f}".format(t_end - t_start))
