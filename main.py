@@ -7,6 +7,8 @@ Example use:
 '''
 import tensorflow as tf
 import argparse
+
+from algorithms.GEM import GEM
 from algorithms.Player2vec import Player2Vec
 from algorithms.FdGars import FdGars
 from algorithms.SemiGNN import SemiGNN
@@ -22,12 +24,13 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='SemiGNN')
+    parser.add_argument('--model', type=str, default='GEM',
+                        help="['Player2vec', 'FdGars','GEM','SemiGNN','SpamGCN']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
     parser.add_argument('--epoch_num', type=int, default=5, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
 
@@ -45,13 +48,17 @@ def arg_parser():
     parser.add_argument('--encoding4', type=int, default=64)
 
     # SemiGNN
-    parser.add_argument('--init_emb_size', default=4, help=' initial node embedding size')
+    parser.add_argument('--init_emb_size', default=4, help='initial node embedding size')
     parser.add_argument('--semi_encoding1', default=3, help='node attention layer units')
     parser.add_argument('--semi_encoding2', default=2, help='view attention layer units')
     parser.add_argument('--semi_encoding3', default=4, help='one-layer perceptron units')
     parser.add_argument('--Ul', default=8, help='labeled users number')
     parser.add_argument('--alpha', default=0.5, help='loss alpha')
     parser.add_argument('--lamtha', default=0.5, help='loss lamtha')
+
+    # GEM
+    parser.add_argument('--hop', default=2, help='hop number')
+    parser.add_argument('--k', default=16, help='gem layer unit')
     args = parser.parse_args()
     return args
 
@@ -74,8 +81,8 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'dblp':
-        # adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
-        adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+        # adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
         node_size = features.shape[0]
         node_embedding = features.shape[1]
         class_size = train_label.shape[1]
@@ -119,6 +126,11 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                           embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
                           encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
                           encoding4=args.encoding4, gcn_dim=args.gcn_dim)
+        if args.model == 'GEM':
+            adj_data = adj_list
+            meta_size = len(adj_list)  # device num
+            net = GEM(session=sess, class_size=paras[2], encoding=args.k,
+                      meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop)
         if args.model == 'SemiGNN':
             adj_nodelists = [matrix_to_adjlist(adj, pad=False) for adj in adj_list]
             meta_size = len(adj_list)
@@ -144,6 +156,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
         for epoch in range(args.epoch_num):
             train_loss = 0
             train_acc = 0
+            count = 0
             for index in range(0, paras[3], args.batch_size):
                 if args.model == 'SemiGNN':
                     batch_data, batch_sup_label = get_data(index, args.batch_size, paras[3])
@@ -151,21 +164,20 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                       batch_sup_label,
                                                       args.learning_rate,
                                                       args.momentum)
-                else:  # model player2vec, SpamGCN or FdGars
+                else:  # model player2vec, SpamGCN， GEM or FdGars
                     batch_data, batch_label = get_data(index, args.batch_size, paras[3])
                     loss, acc, pred, prob = net.train(features, adj_data, batch_label,
                                                       batch_data, args.learning_rate,
                                                       args.momentum)
 
-                if index % 1 == 0:
-                    print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
+                print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
+
                 train_loss += loss
                 train_acc += acc
-
-            train_loss = train_loss / args.batch_size
-            train_acc = train_acc / args.batch_size
-            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss,
-                                                                             train_acc))
+                count += 1
+            train_loss = train_loss / count
+            train_acc = train_acc / count
+            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
             # if epoch % 10 == 9:
             #     net.save(sess)
 
@@ -185,7 +197,6 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
-    print(pred)
 
 
 if __name__ == "__main__":
