@@ -24,7 +24,7 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='GEM',
+    parser.add_argument('--model', type=str, default='FdGars',
                         help="['Player2vec', 'FdGars','GEM','SemiGNN','SpamGCN']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
@@ -117,7 +117,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                              meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
         if args.model == 'FdGars':
             adj_data = [normalize_adj(adj) for adj in adj_list]
-            meta_size = len(adj_list)
+            meta_size = len(adj_list)  # meta=1 in FdGars
             net = FdGars(session=sess, class_size=paras[2], gcn_output1=args.hidden1, gcn_output2=args.hidden2,
                          meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
         if args.model == 'SpamGCN':

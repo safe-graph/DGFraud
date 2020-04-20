@@ -14,6 +14,7 @@ from base_models.model import GCN
 from algorithms.base_algorithm import Algorithm
 from utils import utils
 
+
 class FdGars(Algorithm):
 
     def __init__(self,
