@@ -446,3 +446,44 @@ class GASConcatenation(Layer):
 
         concate_vecs = tf.concat([ri, self.review_vecs, ru, self.homo_vecs], axis=1)
         return concate_vecs
+
+
+class GEMLayer(Layer):
+    """This layer equals to the equation (8) in
+    paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
+    """
+
+    def __init__(self, placeholders, nodes, device_num, embedding, encoding, name=None, **kwargs):
+        super(GEMLayer, self).__init__(**kwargs)
+
+        self.nodes = nodes
+        self.devices_num = device_num
+        self.encoding = encoding
+        self.embedding = embedding
+        self.placeholders = placeholders
+
+        if name is not None:
+            name = '/' + name
+        else:
+            name = ''
+
+        with tf.variable_scope(self.name + name + '_vars'):
+            self.vars['W'] = glorot([embedding, encoding], name='W')
+            self.vars['V'] = glorot([encoding, encoding], name='V')
+            self.vars['alpha'] = glorot([self.devices_num, 1], name='V')
+        if self.logging:
+            self._log_vars()
+
+    def _call(self, inputs):
+        h1 = tf.matmul(self.placeholders['x'], self.vars['W'])
+        h2 = []
+        for d in range(self.devices_num):
+            ahv = tf.matmul(tf.matmul(self.placeholders['a'][d], inputs), self.vars['V'])
+            h2.append(ahv)
+        h2 = tf.concat(h2, 0)
+        h2 = tf.reshape(h2, [self.devices_num, self.nodes * self.encoding])
+        h2 = tf.transpose(h2, [1, 0])
+        h2 = tf.reshape(tf.matmul(h2, self.vars['alpha']), [self.nodes, self.encoding])
+
+        h = tf.nn.softmax(h1 + h2)
+        return h
