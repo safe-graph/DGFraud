@@ -31,9 +31,9 @@ Welcome contribution, refer to the to-do list.
 **Citation Information**
 
 **Useful Resources**
-- [Graph-based Fraud Detection Paper List](https://github.com/YingtongDou/graph-fraud-detection-papers) 
+- [Graph-based Fraud Detection Paper List](https://github.com/safe-graph/graph-fraud-detection-papers) 
 - [Awesome Fraud Detection Papers](https://github.com/benedekrozemberczki/awesome-fraud-detection-papers)
-- [Attack and Defense Papers on Graph Data](https://github.com/YingtongDou/graph-adversarial-learning-literature)
+- [Attack and Defense Papers on Graph Data](https://github.com/safe-graph/graph-adversarial-learning-literature)
 - [PyOD: A Python Toolbox for Scalable Outlier Detection (Anomaly Detection)](https://github.com/yzhao062/pyod)
 - [PyODD: An End-to-end Outlier Detection System](https://github.com/datamllab/pyodds)
 - [DGL: Deep Graph Library](https://github.com/dmlc/dgl)
