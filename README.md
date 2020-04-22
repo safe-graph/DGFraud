@@ -19,7 +19,7 @@
 </p>
 
 <h3 align="center">
-<p>A Graph Neural Network Tool Box for Fraud Detection
+<p>A Deep Graph-based Tool Box for Fraud Detection
 </h3>
 
 Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also include several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found here. <!-- (Add introduction blogs links). -->
