@@ -29,13 +29,13 @@ Welcome contribution, refer to the to-do list.
 **Citation Information**
 
 **Useful Resources**
-- Fraud-detection paper list1
-- Fraud-detection paper list2
-- Graph attack defense papers
-- PyOD
-- PyODD
-- DGL
-- SUNY-Dataset
+- [Graph-based Fraud Detection Paper List](https://github.com/YingtongDou/graph-fraud-detection-papers) 
+- [Awesome Fraud Detection Papers](https://github.com/benedekrozemberczki/awesome-fraud-detection-papers)
+- [Attack and Defense Papers on Graph Data](https://github.com/YingtongDou/graph-adversarial-learning-literature)
+- [PyOD: A Python Toolbox for Scalable Outlier Detection (Anomaly Detection)](https://github.com/yzhao062/pyod)
+- [PyODD: An End-to-end Outlier Detection System](https://github.com/datamllab/pyodds)
+- [DGL: Deep Graph Library](https://github.com/dmlc/dgl)
+- [Outlier Detection DataSets (ODDS)](http://odds.cs.stonybrook.edu/)
 
 **Table of Contents**
 - [Installation](#installation)
@@ -52,10 +52,7 @@ Introduce how to install and deploy the code
 Give a list of dependencies on packages
 
 ### Dataset
-Preprocessed DBLP can be found in:<br/>
-链接：https://pan.baidu.com/s/1L8GESaLKvVbM84ffp7h_mA 
-提取码：cz0y <br/>
-(copied data from Jhy1993/HAN)<br/> download and put in the /data directory
+
 
 ## User Guide
 
