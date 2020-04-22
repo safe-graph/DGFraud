@@ -24,6 +24,8 @@
 
 Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also include several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found here. <!-- (Add introduction blogs links). -->
 
+Contributed Users: Yutong Deng, BDSC Lab.
+
 Welcome contribution, refer to the to-do list.
 
 **Citation Information**
@@ -42,6 +44,8 @@ Welcome contribution, refer to the to-do list.
 - [User Guide](#user-guide)
 - [Implemented Models](#implemented-models)
 - [TODO List](#todo-list)
+- [Contribute](#contribute)
+- [License](#license)
 
 
 ## Installation
@@ -79,6 +83,9 @@ Introduce how to run the code from the command line, how to run the code from ID
 - Scalable Implementation
 - Pytorch Version
 
+## Contribute
 
+
+## License
 
 
