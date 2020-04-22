@@ -24,13 +24,13 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='FdGars',
+    parser.add_argument('--model', type=str, default='GEM',
                         help="['Player2vec', 'FdGars','GEM','SemiGNN','SpamGCN']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
-    parser.add_argument('--epoch_num', type=int, default=5, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--epoch_num', type=int, default=40, help='Number of epochs to train.')
+    parser.add_argument('--batch_size', type=int, default=6)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
 
@@ -57,7 +57,7 @@ def arg_parser():
     parser.add_argument('--lamtha', default=0.5, help='loss lamtha')
 
     # GEM
-    parser.add_argument('--hop', default=2, help='hop number')
+    parser.add_argument('--hop', default=1, help='hop number')
     parser.add_argument('--k', default=16, help='gem layer unit')
     args = parser.parse_args()
     return args
@@ -81,8 +81,9 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'dblp':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+        # adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
         # adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
+        adj_list, features, train_data, train_label, test_data, test_label = load_example_gem()
         node_size = features.shape[0]
         node_embedding = features.shape[1]
         class_size = train_label.shape[1]
@@ -130,7 +131,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             adj_data = adj_list
             meta_size = len(adj_list)  # device num
             net = GEM(session=sess, class_size=paras[2], encoding=args.k,
-                      meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop)
+                      meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop, batch_size=args.batch_size)
         if args.model == 'SemiGNN':
             adj_nodelists = [matrix_to_adjlist(adj, pad=False) for adj in adj_list]
             meta_size = len(adj_list)
@@ -171,6 +172,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                       args.momentum)
 
                 print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
+                print(prob,pred)
 
                 train_loss += loss
                 train_acc += acc
@@ -197,6 +199,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
+    print(test_pred, test_probabilities)
 
 
 if __name__ == "__main__":

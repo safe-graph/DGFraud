@@ -483,7 +483,7 @@ class GEMLayer(Layer):
         h2 = tf.concat(h2, 0)
         h2 = tf.reshape(h2, [self.devices_num, self.nodes * self.encoding])
         h2 = tf.transpose(h2, [1, 0])
-        h2 = tf.reshape(tf.matmul(h2, self.vars['alpha']), [self.nodes, self.encoding])
+        h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.vars['alpha'])), [self.nodes, self.encoding])
 
-        h = tf.nn.softmax(h1 + h2)
+        h = tf.nn.sigmoid(h1 + h2)
         return h

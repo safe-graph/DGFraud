@@ -24,13 +24,15 @@ class GEM(Algorithm):
                  meta,
                  embedding,
                  encoding,
-                 hop):
+                 hop,
+                 batch_size):
         self.nodes = nodes
         self.meta = meta
         self.class_size = class_size
         self.embedding = embedding
         self.encoding = encoding
         self.hop = hop
+        self.batch_size = batch_size
 
         self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
                              'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
@@ -45,9 +47,13 @@ class GEM(Algorithm):
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
-        self.pred = tf.one_hot(tf.argmax(self.probabilities, 1), class_size)
+        # self.pred = tf.argmax(self.probabilities, 1)
+        x = tf.ones_like(self.probabilities)
+        y = tf.zeros_like(self.probabilities) - 1
+        self.pred = tf.where(self.probabilities > 0, x=x, y=y)
+
         print(self.pred.shape)
-        self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1), tf.argmax(self.placeholders['t'], 1))
+        self.correct_prediction = tf.equal(self.pred, self.placeholders['t'])
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, "float"))
         print('Forward propagation finished.')
 
@@ -77,14 +83,16 @@ class GEM(Algorithm):
             b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
             tf.transpose(batch_data, perm=[0, 1])
             logits = tf.matmul(batch_data, W) + b
-            prob = tf.nn.sigmoid(logits)
-            pred = tf.one_hot(tf.argmax(prob, 1), self.class_size)
+            # prob = tf.nn.sigmoid(logits)
+
             u = tf.get_variable(name='u',
-                                shape=[self.class_size, self.nodes],
+                                shape=[self.batch_size, self.embedding],
                                 initializer=tf.contrib.layers.xavier_initializer())
-            loss = -tf.reduce_mean(tf.log_sigmoid(tf.matmul(pred, tf.matmul(u, h))))
+            # loss = -tf.reduce_sum(tf.log_sigmoid(tf.matmul(self.placeholders['t'], tf.matmul(u, logits))))
+            loss = -tf.reduce_sum(
+                tf.log_sigmoid(tf.matmul(tf.transpose(u * logits, perm=[1, 0]), self.placeholders['t'])))
+
             # loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['t'], logits=logits)
-            # hop=1 时 这个loss效果很好
 
         return loss, tf.nn.sigmoid(logits)
 
