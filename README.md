@@ -1,40 +1,91 @@
-# DGFraud
-A graph neural network tool box for fraud detection
+<p align="center">
+    <br>
+    <img src="https://raw.githubusercontent.com/huggingface/transformers/master/docs/source/imgs/transformers_logo_name.png" width="400"/>
+    <br>
+<p>
+<p align="center">
+    <a href="https://circleci.com/gh/huggingface/transformers">
+        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/transformers/master">
+    </a>
+    <a href="https://github.com/huggingface/transformers/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
+    </a>
+    <a href="https://huggingface.co/transformers/index.html">
+        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">
+    </a>
+    <a href="https://github.com/huggingface/transformers/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/transformers.svg">
+    </a>
+</p>
 
-## Dataset
-Preprocessed DBLP can be found in:<br/>
-链接：https://pan.baidu.com/s/1L8GESaLKvVbM84ffp7h_mA 
-提取码：cz0y <br/>
-(copied data from Jhy1993/HAN)<br/> download and put in the /data directory
+<h3 align="center">
+<p>A Deep Graph-based Tool Box for Fraud Detection
+</h3>
 
-## Task Log
-| Date   | Task  |  Assigned to  | Finished |
-|-------|--------|--------|-------|
-| 03/04 | Add pycharm helper files and .pyc files to .gitignore and delete them from repo | Yutong |<ul><li>- [x] </li></ul> | 
-| 03/04 | Change the Player2Vec with multiple meta-graphs as input | Yutong |<ul><li>- [x] </li></ul> | 
-| 03/04 | Change the hard-coded sparse dropout helper variable | Yutong |<ul><li>- [x] </li></ul> | 
-| 02/18 | Run Player2Vec, FdGars and SpamGCN on Yelp spam review data | Yingtong |<ul><li>- [x] </li></ul> | 
-| 02/18 | Implement SemiGNN | Yutong |<ul><li>- [ ] </li></ul> | 
-| 02/18 | Add comments to all functions | Yutong |<ul><li>- [x] </li></ul> | 
-| 02/18 | Solve the dblp dataset loading issue | Yutong |<ul><li>- [x] </li></ul> | 
-| 12/02 | main.py: code structure refer to /reference/main.py | Yutong |<ul><li>- [x] </li></ul> | 
-| 12/02 | main.py: move data reading functions to data_loader.py in /utils| Yutong |<ul><li>- [x] </li></ul> | 
-| 12/02 | main.py: move nor_adj function to utils.py in /utils | Yutong |<ul><li>- [x] </li></ul> |
-| 12/02 | Improve the header comments format: refer to /reference/gaussian_moments.py and /reference/px_expander.py | Yutong |<ul><li>- [x] </li></ul> | 
-| 11/25 | Upload required files to make the code run regularly | Yutong |<ul><li>- [x] </li></ul> | 
-| 11/25 | Put the Player2Vec class to a new file named player2vec.py, add header to explain the algorithm logic  | Yutong | <ul><li>- [x] </li></ul> |
-| 11/25 | For each file in /models folder, add comment header to show the copyright and briefly introduce your change if you changed it  | Yutong | <ul><li>- [x] </li></ul> |
-| 11/25 | Modify the FdGars   | Yutong | <ul><li>- [x] </li></ul> |
-| 11/25 | Implement SpamGCN   | Yutong | <ul><li>- [x] </li></ul> |
+Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also include several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found here. <!-- (Add introduction blogs links). -->
 
-## Algorithm Implementation Checklist
-| Alg Name   | Title  | Venue |  Paper | Code  |
-|-------|--------|--------|--------|-----------|
-| **SemiGNN** | **A Semi-supervised Graph Attentive Network for Fraud Detection**  | ICDM 2019  |  [Link](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)   |  <ul><li>- [ ] </li></ul> |
-| **Player2Vec** | **Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework**  | CIKM 2019  | [Link](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf) | <ul><li>- [x] </li></ul> |
-| **GAS** | **Spam Review Detection with Graph Convolutional Networks**  | CIKM 2019  | [Link](https://arxiv.org/abs/1908.10679) | <ul><li>- [x] </li></ul> |
-| **FdGars** | **FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System**  | The WebConference 2019 | [Link](https://dl.acm.org/citation.cfm?id=3316586) | <ul><li>- [x] </li></ul> |
-| **HACUD** | **Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism**  | AAAI 2019 | [Link](https://aaai.org/ojs/index.php/AAAI/article/view/3884) | <ul><li>- [ ] </li></ul> |
-| **GEM** | **Heterogeneous Graph Neural Networks for Malicious Account Detection**  | CIKM 2018 | [Link](https://dl.acm.org/citation.cfm?id=3272010) | <ul><li>- [ ] </li></ul> |
-<!-- | 2019 | **Uncovering Insurance Fraud Conspiracy with Network Learning**  | SIGIR 2019 | [Link](https://dl.acm.org/citation.cfm?id=3331184.3331372) | Link | -->
-<!-- | 2018 | **GraphRAD: A Graph-based Risky Account Detection System**  | MLG 2018 | [Link](https://www.mlgworkshop.org/2018/papers/MLG2018_paper_12.pdf) | Link | -->
+Contributed Users: Yutong Deng, BDSC Lab.
+
+Welcome contribution, refer to the to-do list.
+
+**Citation Information**
+
+**Useful Resources**
+- [Graph-based Fraud Detection Paper List](https://github.com/safe-graph/graph-fraud-detection-papers) 
+- [Awesome Fraud Detection Papers](https://github.com/benedekrozemberczki/awesome-fraud-detection-papers)
+- [Attack and Defense Papers on Graph Data](https://github.com/safe-graph/graph-adversarial-learning-literature)
+- [PyOD: A Python Toolbox for Scalable Outlier Detection (Anomaly Detection)](https://github.com/yzhao062/pyod)
+- [PyODD: An End-to-end Outlier Detection System](https://github.com/datamllab/pyodds)
+- [DGL: Deep Graph Library](https://github.com/dmlc/dgl)
+- [Outlier Detection DataSets (ODDS)](http://odds.cs.stonybrook.edu/)
+
+**Table of Contents**
+- [Installation](#installation)
+- [User Guide](#user-guide)
+- [Implemented Models](#implemented-models)
+- [TODO List](#todo-list)
+- [Contribute](#contribute)
+- [License](#license)
+
+
+## Installation
+
+Introduce how to install and deploy the code
+
+### Requirements
+Give a list of dependencies on packages
+
+### Dataset
+
+
+## User Guide
+
+Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
+
+## Implemented Models
+| Model Name  | Paper  | Venue  | Status  |
+|-------|--------|--------|--------|
+| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Fraud Detection](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)  | ICDM 2019  | <ul><li>- [x] </li></ul> |
+| **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | <ul><li>- [x] </li></ul> |
+| **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | <ul><li>- [x] </li></ul> |
+| **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | The WebConference 2019 | <ul><li>- [x] </li></ul> |
+| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  <ul><li>- [ ] </li></ul> |
+| **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 |  <ul><li>- [x] </li></ul> |
+| **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 | <ul><li>- [x] </li></ul> |
+
+<!-- ### Comparison between different models -->
+
+
+## TODO List
+- Comparsion between different models
+- Add sampling methods
+- Benchmarking SOTA models
+- Scalable Implementation
+- Pytorch Version
+
+## Contribute
+
+
+## License
+
+
