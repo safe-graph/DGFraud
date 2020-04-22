@@ -18,7 +18,7 @@ def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
-    rownetworks = [data['net_APCPA'] - np.eye(N),data['net_APA'] - np.eye(N)]
+    rownetworks = [data['net_APCPA'] - np.eye(N), data['net_APA'] - np.eye(N)]
     # rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
     y = truelabels
     index = range(len(y))
@@ -58,7 +58,44 @@ def load_example_semi():
     y = np.array([[0, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [0, 1]])
     index = range(len(y))
     X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
-                                                        shuffle=True)# test_size=0.25  batch——size=2
+                                                        shuffle=True)  # test_size=0.25  batch——size=2
+
+    return rownetworks, features, X_train, y_train, X_test, y_test
+
+
+def load_example_gem():
+    # node=8  p=7  D=2
+    features = np.array([[5, 3, 0, 1, 0, 0, 0, 1, 0],
+                         [2, 3, 1, 2, 0, 0, 0, 1, 0],
+                         [3, 1, 6, 4, 0, 0, 1, 1, 0],
+                         [0, 0, 2, 4, 4, 1, 0, 1, 1],
+                         [0, 0, 3, 3, 1, 0, 1, 0, 1],
+                         [1, 2, 5, 1, 4, 1, 0, 0, 1],
+                         [0, 1, 3, 5, 1, 0, 0, 0, 1],
+                         [0, 3, 4, 5, 2, 1, 1, 0, 1]
+                         ])
+    N = features.shape[0]
+    rownetworks = [np.array([[1, 1, 1, 1, 1, 0, 0, 0],
+                             [1, 1, 1, 1, 1, 0, 0, 0],
+                             [1, 1, 1, 1, 1, 0, 0, 0],
+                             [1, 1, 1, 1, 1, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0]]),
+                   np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 1, 1, 1, 1, 1],
+                             [0, 0, 0, 1, 1, 1, 1, 1],
+                             [0, 0, 0, 1, 1, 1, 0, 1],
+                             [0, 0, 0, 1, 1, 1, 1, 1],
+                             [0, 0, 0, 1, 1, 1, 1, 1]])]
+    y = np.array([-1, -1, -1, -1, 1, 1, 1, 1])
+    y = y[:, np.newaxis]
+    index = range(len(y))
+    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
+                                                        shuffle=True)
 
     return rownetworks, features, X_train, y_train, X_test, y_test
 
