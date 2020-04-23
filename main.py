@@ -29,7 +29,7 @@ def arg_parser():
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
-    parser.add_argument('--epoch_num', type=int, default=40, help='Number of epochs to train.')
+    parser.add_argument('--epoch_num', type=int, default=20, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=6)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
@@ -131,7 +131,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             adj_data = adj_list
             meta_size = len(adj_list)  # device num
             net = GEM(session=sess, class_size=paras[2], encoding=args.k,
-                      meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop, batch_size=args.batch_size)
+                      meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop)
         if args.model == 'SemiGNN':
             adj_nodelists = [matrix_to_adjlist(adj, pad=False) for adj in adj_list]
             meta_size = len(adj_list)
@@ -151,7 +151,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             u_j = np.concatenate(np.array(u_j))
 
         sess.run(tf.global_variables_initializer())
-        #        net.load(sess)
+        # net.load(sess)
 
         t_start = time.clock()
         for epoch in range(args.epoch_num):
@@ -172,7 +172,8 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                       args.momentum)
 
                 print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
-                print(prob,pred)
+                # print(prob,pred)
+                # print(batch_label)
 
                 train_loss += loss
                 train_acc += acc
@@ -199,7 +200,8 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
-    print(test_pred, test_probabilities)
+    # print(test_pred, test_probabilities)
+
 
 
 if __name__ == "__main__":
