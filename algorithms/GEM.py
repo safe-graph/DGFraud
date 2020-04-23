@@ -24,15 +24,13 @@ class GEM(Algorithm):
                  meta,
                  embedding,
                  encoding,
-                 hop,
-                 batch_size):
+                 hop):
         self.nodes = nodes
         self.meta = meta
         self.class_size = class_size
         self.embedding = embedding
         self.encoding = encoding
         self.hop = hop
-        self.batch_size = batch_size
 
         self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
                              'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
@@ -47,10 +45,9 @@ class GEM(Algorithm):
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
-        # self.pred = tf.argmax(self.probabilities, 1)
         x = tf.ones_like(self.probabilities)
-        y = tf.zeros_like(self.probabilities) - 1
-        self.pred = tf.where(self.probabilities > 0, x=x, y=y)
+        y = tf.zeros_like(self.probabilities)
+        self.pred = tf.where(self.probabilities > 0.5, x=x, y=y)
 
         print(self.pred.shape)
         self.correct_prediction = tf.equal(self.pred, self.placeholders['t'])
@@ -83,17 +80,18 @@ class GEM(Algorithm):
             b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
             tf.transpose(batch_data, perm=[0, 1])
             logits = tf.matmul(batch_data, W) + b
-            # prob = tf.nn.sigmoid(logits)
 
             u = tf.get_variable(name='u',
-                                shape=[self.batch_size, self.embedding],
+                                shape=[1, self.encoding],
                                 initializer=tf.contrib.layers.xavier_initializer())
-            # loss = -tf.reduce_sum(tf.log_sigmoid(tf.matmul(self.placeholders['t'], tf.matmul(u, logits))))
-            loss = -tf.reduce_sum(
-                tf.log_sigmoid(tf.matmul(tf.transpose(u * logits, perm=[1, 0]), self.placeholders['t'])))
 
-            # loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['t'], logits=logits)
+            loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['t'], logits=logits)
 
+            # TODO
+            # loss = -tf.reduce_sum(
+            #     tf.log_sigmoid(self.placeholders['t'] * tf.matmul(u, tf.transpose(batch_data, perm=[1, 0]))))
+
+        # return loss, logits
         return loss, tf.nn.sigmoid(logits)
 
     def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):

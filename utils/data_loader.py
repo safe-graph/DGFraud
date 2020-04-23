@@ -75,10 +75,10 @@ def load_example_gem():
                          [0, 3, 4, 5, 2, 1, 1, 0, 1]
                          ])
     N = features.shape[0]
-    rownetworks = [np.array([[1, 1, 1, 1, 1, 0, 0, 0],
-                             [1, 1, 1, 1, 1, 0, 0, 0],
-                             [1, 1, 1, 1, 1, 0, 0, 0],
-                             [1, 1, 1, 1, 1, 0, 0, 0],
+    rownetworks = [np.array([[1, 1, 1, 1, 0, 0, 0, 0],
+                             [1, 1, 1, 1, 0, 0, 0, 0],
+                             [1, 1, 1, 1, 0, 0, 0, 0],
+                             [1, 1, 1, 1, 0, 0, 0, 0],
                              [0, 0, 0, 0, 0, 0, 0, 0],
                              [0, 0, 0, 0, 0, 0, 0, 0],
                              [0, 0, 0, 0, 0, 0, 0, 0],
@@ -88,13 +88,14 @@ def load_example_gem():
                              [0, 0, 0, 0, 0, 0, 0, 0],
                              [0, 0, 0, 1, 1, 1, 1, 1],
                              [0, 0, 0, 1, 1, 1, 1, 1],
-                             [0, 0, 0, 1, 1, 1, 0, 1],
+                             [0, 0, 0, 1, 1, 1, 1, 1],
                              [0, 0, 0, 1, 1, 1, 1, 1],
                              [0, 0, 0, 1, 1, 1, 1, 1]])]
-    y = np.array([-1, -1, -1, -1, 1, 1, 1, 1])
+    # y = np.array([-1, -1, -1, -1, 1, 1, 1, 1])
+    y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
     y = y[:, np.newaxis]
     index = range(len(y))
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
+    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=8,
                                                         shuffle=True)
 
     return rownetworks, features, X_train, y_train, X_test, y_test
