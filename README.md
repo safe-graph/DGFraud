@@ -43,6 +43,7 @@ Welcome contribution, refer to the to-do list.
 - [Installation](#installation)
 - [User Guide](#user-guide)
 - [Implemented Models](#implemented-models)
+- [Model Comparison](#model-comparison)
 - [TODO List](#todo-list)
 - [Contribute](#contribute)
 - [License](#license)
@@ -63,18 +64,27 @@ Give a list of dependencies on packages
 Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
 
 ## Implemented Models
-| Model Name  | Paper  | Venue  | Status  |
+
+| Model  | Paper  | Venue  | Reference  |
 |-------|--------|--------|--------|
-| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Fraud Detection](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)  | ICDM 2019  | <ul><li>- [x] </li></ul> |
-| **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | <ul><li>- [x] </li></ul> |
-| **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | <ul><li>- [x] </li></ul> |
-| **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | The WebConference 2019 | <ul><li>- [x] </li></ul> |
-| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  <ul><li>- [ ] </li></ul> |
-| **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 |  <ul><li>- [x] </li></ul> |
-| **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 | <ul><li>- [x] </li></ul> |
+| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Fraud Detection](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)  | ICDM 2019  | Bibtex |
+| **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | Bibtex|
+| **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | Bibtex |
+| **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | WWW 2019 | Bibtex |
+| **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | Bibtex  |
+| **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 |Bibtex |
+<!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
 
-<!-- ### Comparison between different models -->
-
+## Model Comparison
+| Model  | Application  | Graph Type  | Base Model  |
+|-------|--------|--------|--------|
+| **SemiGNN** | Financial Fraud  | Heterogeneous   | GAT, LINE, DeepWalk |
+| **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
+| **GAS** | Spam Detection  | Heterogeneous | GCN, GAT |
+| **FdGars** |  Spam Detection | Homogeneous | GCN |
+| **GeniePath** | Financial Fraud | Homogeneous | GraphSAGE  |
+| **GEM** | Financial Fraud  | Heterogeneous |GraphSAGE |
+<!--| **HACUD** |  |  |   |-->
 
 ## TODO List
 - Comparsion between different models
