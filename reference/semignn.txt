@@ -1,0 +1,8 @@
+@inproceedings{wang2019semi,
+  title={A Semi-supervised Graph Attentive Network for Financial Fraud Detection},
+  author={Wang, Daixin and Lin, Jianbin and Cui, Peng and Jia, Quanhui and Wang, Zhen and Fang, Yanming and Yu, Quan and Zhou, Jun and Yang, Shuang and Qi, Yuan},
+  booktitle={2019 IEEE International Conference on Data Mining (ICDM)},
+  pages={598--607},
+  year={2019},
+  organization={IEEE}
+}

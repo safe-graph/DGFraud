@@ -1,0 +1,7 @@
+@inproceedings{wang2019fdgars,
+  title={Fdgars: Fraudster detection via graph convolutional networks in online app review system},
+  author={Wang, Jianyu and Wen, Rui and Wu, Chunming and Huang, Yu and Xion, Jian},
+  booktitle={Companion Proceedings of The 2019 World Wide Web Conference},
+  pages={310--316},
+  year={2019}
+}

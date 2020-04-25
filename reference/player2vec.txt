@@ -1,0 +1,7 @@
+@inproceedings{zhang2019key,
+  title={Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework},
+  author={Zhang, Yiming and Fan, Yujie and Ye, Yanfang and Zhao, Liang and Shi, Chuan},
+  booktitle={Proceedings of the 28th ACM International Conference on Information and Knowledge Management},
+  pages={549--558},
+  year={2019}
+}
