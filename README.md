@@ -82,8 +82,8 @@ Introduce how to run the code from the command line, how to run the code from ID
 | **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
 | **GAS** | Spam Detection  | Heterogeneous | GCN, GAT |
 | **FdGars** |  Spam Detection | Homogeneous | GCN |
-| **GeniePath** | Financial Fraud | Homogeneous | GraphSAGE  |
-| **GEM** | Financial Fraud  | Heterogeneous |GraphSAGE |
+| **GeniePath** | Financial Fraud | Homogeneous | GAT  |
+| **GEM** | Financial Fraud  | Heterogeneous |GCN |
 <!--| **HACUD** |  |  |   |-->
 
 ## TODO List
