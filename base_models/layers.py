@@ -1,6 +1,8 @@
 from base_models.inits import *
 import tensorflow as tf
 
+# from base_models.model import GAT
+
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
@@ -8,9 +10,7 @@ FLAGS = flags.FLAGS
 _LAYER_UIDS = {}
 
 
-##########################
-# Adapted from tkipf/gcn #
-##########################
+# Code about GCN is adapted from tkipf/gcn
 
 def get_layer_uid(layer_name=''):
     """Helper function, assigns unique layer IDs."""
@@ -487,3 +487,105 @@ class GEMLayer(Layer):
 
         h = tf.nn.sigmoid(h1 + h2)
         return h
+
+
+class GAT(Layer):
+    """This layer is adapted from PetarV-/GAT.'
+    """
+
+    def __init__(self, dim, attn_drop, ffd_drop, bias_mat, n_heads, name=None, **kwargs):
+        super(GAT, self).__init__(**kwargs)
+
+        self.dim = dim
+        self.attn_drop = attn_drop
+        self.ffd_drop = ffd_drop
+        self.bias_mat = bias_mat
+        self.n_heads = n_heads
+
+        if name is not None:
+            name = '/' + name
+        else:
+            name = ''
+
+        if self.logging:
+            self._log_vars()
+
+    def attn_head(self, seq, out_sz, bias_mat, activation, in_drop=0.0, coef_drop=0.0, residual=False):
+        conv1d = tf.layers.conv1d
+        with tf.name_scope('my_attn'):
+            if in_drop != 0.0:
+                seq = tf.nn.dropout(seq, 1.0 - in_drop)
+
+            seq_fts = tf.layers.conv1d(seq, out_sz, 1, use_bias=False)
+
+            # simplest self-attention possible
+            f_1 = tf.layers.conv1d(seq_fts, 1, 1)
+            f_2 = tf.layers.conv1d(seq_fts, 1, 1)
+            logits = f_1 + tf.transpose(f_2, [0, 2, 1])
+            coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
+
+            if coef_drop != 0.0:
+                coefs = tf.nn.dropout(coefs, 1.0 - coef_drop)
+            if in_drop != 0.0:
+                seq_fts = tf.nn.dropout(seq_fts, 1.0 - in_drop)
+
+            vals = tf.matmul(coefs, seq_fts)
+            ret = tf.contrib.layers.bias_add(vals)
+
+            # residual connection
+            if residual:
+                if seq.shape[-1] != ret.shape[-1]:
+                    ret = ret + conv1d(seq, ret.shape[-1], 1)  # activation
+                else:
+                    ret = ret + seq
+
+            return activation(ret)  # activation
+
+    def inference(self, inputs):
+        out = []
+        # for i in range(n_heads[-1]):
+        for i in range(self.n_heads):
+            out.append(self.attn_head(inputs, bias_mat=self.bias_mat, out_sz=self.dim, activation=tf.nn.elu,
+                                      in_drop=self.ffd_drop, coef_drop=self.attn_drop, residual=False))
+        logits = tf.add_n(out) / self.n_heads
+        return logits
+
+
+class GeniePathLayer(Layer):
+    """This layer equals to the Adaptive Path Layer in
+    paper 'GeniePath: Graph Neural Networks with Adaptive Receptive Paths.'
+    The code is adapted from shawnwang-tech/GeniePath-pytorch
+    """
+
+    def __init__(self, placeholders, nodes, in_dim, dim, heads=1, name=None, **kwargs):
+        super(GeniePathLayer, self).__init__(**kwargs)
+
+        self.nodes = nodes
+        self.in_dim = in_dim
+        self.dim = dim
+        self.heads = heads
+        self.placeholders = placeholders
+
+        if name is not None:
+            name = '/' + name
+        else:
+            name = ''
+
+        if self.logging:
+            self._log_vars()
+
+    def depth_forward(self, x, h, c):
+        with tf.variable_scope('lstm', reuse=tf.AUTO_REUSE):
+            cell = tf.nn.rnn_cell.LSTMCell(num_units=h, state_is_tuple=True)
+            x, (c, h) = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+        return x, (c, h)
+
+    def breadth_forward(self, x, bias_in):
+        x = tf.tanh(GAT(self.dim, attn_drop=0, ffd_drop=0, bias_mat=bias_in, n_heads=self.heads).inference(x))
+        return x
+
+    def forward(self, x, bias_in, h, c):
+        x = self.breadth_forward(x, bias_in)
+        x, (h, c) = self.depth_forward(x, h, c)
+        x = x[0]
+        return x, (h, c)
