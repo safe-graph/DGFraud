@@ -1,0 +1,7 @@
+@inproceedings{li2019spam,
+  title={Spam Review Detection with Graph Convolutional Networks},
+  author={Li, Ao and Qin, Zhou and Liu, Runshi and Yang, Yiqun and Li, Dong},
+  booktitle={Proceedings of the 28th ACM International Conference on Information and Knowledge Management},
+  pages={2703--2711},
+  year={2019}
+}

@@ -1,0 +1,7 @@
+@inproceedings{liu2018heterogeneous,
+  title={Heterogeneous graph neural networks for malicious account detection},
+  author={Liu, Ziqi and Chen, Chaochao and Yang, Xinxing and Zhou, Jun and Li, Xiaolong and Song, Le},
+  booktitle={Proceedings of the 27th ACM International Conference on Information and Knowledge Management},
+  pages={2077--2085},
+  year={2018}
+}
