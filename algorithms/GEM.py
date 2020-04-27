@@ -10,7 +10,7 @@
 '''
 
 import tensorflow as tf
-from base_models.model import GCN, GEMLayer
+from base_models.model import GEMLayer
 from algorithms.base_algorithm import Algorithm
 from utils import utils
 
