@@ -30,10 +30,10 @@ def arg_parser():
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
 
-    parser.add_argument('--epoch_num', type=int, default=20, help='Number of epochs to train.')
+    parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
-    parser.add_argument('--learning_rate', default=0.01, help='the ratio of training set in whole dataset.')
+    parser.add_argument('--learning_rate', default=0.001, help='the ratio of training set in whole dataset.')
 
     # GCN args
     parser.add_argument('--hidden1', default=16, help='Number of units in GCN hidden layer 1.')
@@ -65,7 +65,7 @@ def arg_parser():
     parser.add_argument('--dim', default=128)
     parser.add_argument('--lstm_hidden', default=128, help='lstm_hidden unit')
     parser.add_argument('--heads', default=1, help='gat heads')
-    parser.add_argument('--layer_num', default=2, help='geniePath layer num')
+    parser.add_argument('--layer_num', default=4, help='geniePath layer num')
 
     args = parser.parse_args()
     return args

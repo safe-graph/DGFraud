@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import networkx as nx
 from snownlp import SnowNLP
 from gensim import corpora
-from cal_ndcg import ranking_precision_score
+from utils.cal_ndcg import ranking_precision_score
 
 
 def process_raw_text():

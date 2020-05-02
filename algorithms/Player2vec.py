@@ -12,7 +12,7 @@
 '''
 
 import tensorflow as tf
-from base_models.model import GCN
+from base_models.models import GCN
 from base_models.layers import AttentionLayer
 from algorithms.base_algorithm import Algorithm
 from utils import utils
