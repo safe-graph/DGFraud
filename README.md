@@ -89,7 +89,7 @@ Introduce how to run the code from the command line, how to run the code from ID
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
 |-------|--------|--------|--------|
-<!--| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |-->
+| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |
 | **SemiGNN** | Financial Fraud  | Heterogeneous   | GAT, LINE, DeepWalk |
 | **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
 | **GAS** | Opinion Fraud  | Heterogeneous | GCN, GAT |
