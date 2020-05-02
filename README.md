@@ -92,7 +92,7 @@ You can specify a dataset as follows:
 python xx_main.py --dataset your_dataset 
 ```
 or by editing xx_main.py
-### the structure of code
+### The structure of code
 The repository is organised as follows:
 - `algorithms/` contains the implemented models and the corresponding example code;
 - `base_models/` contains the basic models (GCN);
