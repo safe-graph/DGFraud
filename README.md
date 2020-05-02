@@ -1,34 +1,44 @@
+<h3 align="center">
+<p>Under Building Now. The first version is expected to be released in mid May, 2020.
+</h3>
+
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/huggingface/transformers/master/docs/source/imgs/transformers_logo_name.png" width="400"/>
+    <img src="https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png" width="400"/>
     <br>
 <p>
 <p align="center">
-    <a href="https://circleci.com/gh/huggingface/transformers">
-        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/transformers/master">
+    <a href="http://makeapullrequest.com">
+        <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
     </a>
-    <a href="https://github.com/huggingface/transformers/blob/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
+    <a href="https://github.com/safe-graph/DGFraud/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/safe-graph/DGFraud">
     </a>
-    <a href="https://huggingface.co/transformers/index.html">
-        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">
+    <a href="https://github.com/safe-graph/DGFraud">
+        <img alt="Downloads" src="https://img.shields.io/github/downloads/safe-graph/DGFraud/total">
     </a>
-    <a href="https://github.com/huggingface/transformers/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/transformers.svg">
+    <a href="https://github.com/safe-graph/DGFraud/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/v/release/safe-graph/DGFraud">
     </a>
 </p>
 
 <h3 align="center">
-<p>A Deep Graph-based Tool Box for Fraud Detection
+<p>A Deep Graph-based Toolbox for Fraud Detection
 </h3>
 
-Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also include several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found here. <!-- (Add introduction blogs links). -->
+Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also includes several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
 
-Contributed Users: Yutong Deng, BDSC Lab.
+We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-Welcome contribution, refer to the to-do list.
-
-**Citation Information**
+If you feel this repo is useful, please cite the [paper]() below:
+```
+@inproceedings{liu2020alleviating,
+  title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
+  author={Liu, Zhiwei and Dou, Yingtong and Yu, Philip S. and Deng, Yutong and Peng, Hao},
+  booktitle={Proceedings of the 43nd International ACM SIGIR Conference on Research and Development in Information Retrieval},
+  year={2020}
+}
+```
 
 **Useful Resources**
 - [Graph-based Fraud Detection Paper List](https://github.com/safe-graph/graph-fraud-detection-papers) 
@@ -45,29 +55,59 @@ Welcome contribution, refer to the to-do list.
 - [Implemented Models](#implemented-models)
 - [Model Comparison](#model-comparison)
 - [TODO List](#todo-list)
-- [Contribute](#contribute)
-- [License](#license)
+- [How to Contribute](#how-to-contribute)
 
 
 ## Installation
-
-Introduce how to install and deploy the code
-
+```bash
+git clone https://github.com/safe-graph/DGFraud.git
+cd transformers
+python setup.py install
+```
 ### Requirements
-Give a list of dependencies on packages
-
+* tensorflow>=1.14.0,<2.0
+* numpy>=1.16.4
+* scipy>=1.2.0
 ### Dataset
 
 
 ## User Guide
-
 Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
+### Running the example code
+```bash
+python Player2vec_main.py 
+```
+you can specify parameters for models when running the code.
+### Running on your dataset
+Have a look at the load_data_dblp() function in utils/utils.py for an example.
 
+In order to use your own data, you have to provide:
+* adjacency matrices or adjlists (for SpamGCN);
+* a feature matrix
+* a label matrix
+then split feature matrix and label matrix into testing data and training data.
+
+You can specify a dataset as follows:
+```bash
+python xx_main.py --dataset your_dataset 
+```
+or by editing xx_main.py
+### the structure of code
+The repository is organised as follows:
+- `algorithms/` contains the implemented models and the corresponding example code;
+- `base_models/` contains the basic models (GCN);
+- `dataset/` contains the necessary dataset files;
+- `utils/` contains:
+    * loading and splitting the data (`data_loader.py`);
+    * contains various utilities (`utils.py`);
+    * preprocessing raw data (`process_dzdp.py and process_yelp.py`);
+    * computing ndcg score and ranking precision score (`cal_ndcg.py`).
 ## Implemented Models
 
 | Model  | Paper  | Venue  | Reference  |
 |-------|--------|--------|--------|
-| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://github.com/yutongD/Player2Vec/tree/yingtong_modification/papers/SemiGNN.pdf)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
+| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
+| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://ieeexplore.ieee.org/abstract/document/8970829)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
 | **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/player2vec.txt)|
 | **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gas.txt) |
 | **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | WWW 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/fdgars.txt) |
@@ -78,26 +118,25 @@ Introduce how to run the code from the command line, how to run the code from ID
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
 |-------|--------|--------|--------|
+| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |
 | **SemiGNN** | Financial Fraud  | Heterogeneous   | GAT, LINE, DeepWalk |
 | **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
-| **GAS** | Spam Detection  | Heterogeneous | GCN, GAT |
-| **FdGars** |  Spam Detection | Homogeneous | GCN |
+| **GAS** | Opinion Fraud  | Heterogeneous | GCN, GAT |
+| **FdGars** |  Opinion Fraud | Homogeneous | GCN |
 | **GeniePath** | Financial Fraud | Homogeneous | GAT  |
 | **GEM** | Financial Fraud  | Heterogeneous |GCN |
 <!--| **HACUD** |  |  |   |-->
 
 ## TODO List
+- The implementation of GraphConsis
+- Add preprocessed Yelp datasets
 - The memory-efficient implementation of SemiGNN
 - The log loss for GEM model
-- Comparsion between different models
 - Add sampling methods
 - Benchmarking SOTA models
 - Scalable Implementation
 - Pytorch Version
 
-## Contribute
-
-
-## License
-
+## How to Contribute
+You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
 
