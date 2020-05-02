@@ -9,5 +9,5 @@ setup(name='DGFraud',
                         'tensorflow>=1.14.0,<2.0',
                         'scipy>=1.2.0'
                         ],
-      package_data={'gcn': ['README.md']},
+      package_data={'DGFraud': ['README.md']},
       packages=find_packages())
