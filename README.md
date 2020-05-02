@@ -59,19 +59,49 @@ If you feel this repo is useful, please cite the [paper]() below:
 
 
 ## Installation
-
-Introduce how to install and deploy the code
-
+```bash
+git clone https://github.com/safe-graph/DGFraud.git
+cd transformers
+python setup.py install
+```
 ### Requirements
-Give a list of dependencies on packages
-
+* tensorflow>=1.14.0,<2.0
+* numpy>=1.16.4
+* scipy>=1.2.0
 ### Dataset
 
 
 ## User Guide
-
 Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
+### Running the example code
+```bash
+python Player2vec_main.py 
+```
+you can specify parameters for models when running the code.
+### Running on your dataset
+Have a look at the load_data_dblp() function in utils/utils.py for an example.
 
+In order to use your own data, you have to provide:
+* adjacency matrices or adjlists(for SpamGCN);
+* a feature matrix
+* a label matrix
+then split feature matrix and label matrix into testing data and training data.
+
+You can specify a dataset as follows:
+```bash
+python xx_main.py --dataset your_dataset 
+```
+or by editing xx_main.py
+### the structure of code
+The repository is organised as follows:
+- `algorithms/` contains the implemented models and the corresponding example code;
+- `base_models/` contains the basic models (GCN);
+- `dataset/` contains the necessary dataset files;
+- `utils/` contains:
+    * loading and splitting the data (`data_loader.py`);
+    * contains various utilities (`utils.py`);
+    * preprocessing raw data (`process_dzdp.py and process_yelp.py`);
+    * computing ndcg score and ranking precision score (`cal_ndcg.py`).
 ## Implemented Models
 
 | Model  | Paper  | Venue  | Reference  |
