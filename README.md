@@ -82,7 +82,7 @@ you can specify parameters for models when running the code.
 Have a look at the load_data_dblp() function in utils/utils.py for an example.
 
 In order to use your own data, you have to provide:
-* adjacency matrices or adjlists(for SpamGCN);
+* adjacency matrices or adjlists (for SpamGCN);
 * a feature matrix
 * a label matrix
 then split feature matrix and label matrix into testing data and training data.
