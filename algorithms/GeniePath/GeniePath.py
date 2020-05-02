@@ -96,13 +96,13 @@ class GeniePath(Algorithm):
     def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)
         outs = self.sess.run(
-            [self.train_op, self.loss, self.accuracy, self.pred, self.probabilities, self.check],
+            [self.train_op, self.loss, self.accuracy, self.pred, self.probabilities],
             feed_dict=feed_dict)
         loss = outs[1]
         acc = outs[2]
         pred = outs[3]
         prob = outs[4]
-        return loss, acc, pred, prob, outs[5]
+        return loss, acc, pred, prob
 
     def test(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)

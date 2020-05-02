@@ -8,13 +8,12 @@ Example use:
 import tensorflow as tf
 import argparse
 
-from algorithms.GEM import GEM
-from algorithms.GeniePath import GeniePath
-from algorithms.Player2vec import Player2Vec
-from algorithms.FdGars import FdGars
-from algorithms.SemiGNN import SemiGNN
-from algorithms.SpamGCN import SpamGCN
-import os
+from algorithms.GEM.GEM import GEM
+from algorithms.GeniePath.GeniePath import GeniePath
+from algorithms.Player2vec.Player2vec import Player2Vec
+from algorithms.FdGars.FdGars import FdGars
+from algorithms.SemiGNN.SemiGNN import SemiGNN
+from algorithms.SpamGCN.SpamGCN import SpamGCN
 import time
 from utils.data_loader import *
 from utils.utils import *
@@ -29,7 +28,6 @@ def arg_parser():
                         help="['Player2vec', 'FdGars','GEM','SemiGNN','SpamGCN','GeniePath']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
     parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
-
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
@@ -180,14 +178,12 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                       args.momentum)
                 else:  # model player2vec, SpamGCN， GEM or FdGars
                     batch_data, batch_label = get_data(index, args.batch_size, paras[3])
-                    loss, acc, pred, prob, check = net.train(features, adj_data, batch_label,
+                    loss, acc, pred, prob = net.train(features, adj_data, batch_label,
                                                              batch_data, args.learning_rate,
                                                              args.momentum)
 
                 print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
                 # print(prob, pred)
-                # print(batch_label)
-                # print(check)
 
                 train_loss += loss
                 train_acc += acc
@@ -195,8 +191,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             train_loss = train_loss / count
             train_acc = train_acc / count
             print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
-            # if epoch % 10 == 9:
-            #     net.save(sess)
+            # net.save(sess)
 
         t_end = time.clock()
         print("train time=", "{:.5f}".format(t_end - t_start))
@@ -214,8 +209,6 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
-    # print(test_pred, test_probabilities)
-
 
 if __name__ == "__main__":
     args = arg_parser()
