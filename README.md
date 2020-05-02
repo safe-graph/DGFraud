@@ -1,3 +1,7 @@
+<h3 align="center">
+<p>Under Constuction Now. The first version is expected to be released in mid May, 2020.
+</h3>
+
 <p align="center">
     <br>
     <img src="https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png" width="400"/>
