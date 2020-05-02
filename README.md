@@ -11,14 +11,14 @@
     <a href="https://circleci.com/gh/huggingface/transformers">
         <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/transformers/master">
     </a>
-    <a href="https://github.com/huggingface/transformers/blob/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
+    <a href="https://github.com/safe-graph/DGFraud/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/safe-graph/DGFraud">
     </a>
-    <a href="https://huggingface.co/transformers/index.html">
-        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">
+    <a href="https://github.com/safe-graph/DGFraud">
+        <img alt="" src="https://img.shields.io/github/downloads/safe-graph/DGFraud/total">
     </a>
-    <a href="https://github.com/huggingface/transformers/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/transformers.svg">
+    <a href="https://github.com/safe-graph/DGFraud/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/v/release/safe-graph/DGFraud">
     </a>
 </p>
 
