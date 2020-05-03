@@ -4,7 +4,7 @@
 
 <p align="center">
     <br>
-    <a href="https://icons8.com/icon/55509/hacker">
+    <a href="https://image.flaticon.com/icons/svg/1671/1671517.svg">
         <img src="https://github.com/safe-graph/DGFraud/blob/master/DGFraud_logo.png"/>
     </a>
     <br>
