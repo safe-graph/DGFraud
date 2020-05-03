@@ -14,7 +14,7 @@ def read_data_dzdp():
     return X_train, y_train, X_test, y_test
 
 
-def load_data_dblp(path='../../data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
+def load_data_dblp(path='../dataset/DBLP4057_GAT_with_idx.mat'):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
