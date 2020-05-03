@@ -4,7 +4,7 @@
 
 <p align="center">
     <br>
-    <img src="https://github.com/safe-graph/DGFraud/DGFraud_logo.png" width="400"/>
+    <img src="https://github.com/safe-graph/DGFraud/blob/master/DGFraud_logo.png"/>
     <br>
 <p>
 <p align="center">
