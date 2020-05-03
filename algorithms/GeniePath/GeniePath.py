@@ -1,42 +1,47 @@
 '''
-    FdGars ('FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System')
+    GeniePath ('GeniePath: Graph Neural Networks with Adaptive Receptive Paths')
 
-    Parameters:
-        nodes: total nodes number
-        gcn_output1: the first gcn layer unit number
-        gcn_output2: the second gcn layer unit number
-        embedding: node feature dim
-        encoding: nodes representation dim (predict class dim)
+    # Parameters:
+    #     nodes: total nodes number
+    #     in_dim: input feature dim
+    #     out_dim: output representation dim
+    #     dim: breadth forward layer unit
+    #     lstm_hidden: depth forward layer unit
+    #     layer_num: GeniePath layer num
 '''
 
 import tensorflow as tf
-from base_models.model import GCN
+
+from base_models.layers import GeniePathLayer
 from algorithms.base_algorithm import Algorithm
 from utils import utils
 
 
-class FdGars(Algorithm):
+class GeniePath(Algorithm):
 
     def __init__(self,
                  session,
                  nodes,
-                 class_size,
-                 gcn_output1,
-                 gcn_output2,
-                 meta,
-                 embedding,
-                 encoding):
+                 in_dim,
+                 out_dim,
+                 dim,
+                 lstm_hidden,
+                 heads,
+                 layer_num,
+                 class_size):
         self.nodes = nodes
-        self.meta = meta
+        self.in_dim = in_dim
+        self.out_dim = out_dim
+        self.dim = dim
+        self.lstm_hidden = lstm_hidden
+        self.heads = heads
+        self.layer_num = layer_num
         self.class_size = class_size
-        self.gcn_output1 = gcn_output1
-        self.embedding = embedding
-        self.encoding = encoding
 
-        self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
-                             'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
+        self.placeholders = {'a': tf.placeholder(tf.float32, [1, self.nodes, self.nodes], 'adj'),
+                             'x': tf.placeholder(tf.float32, [self.nodes, self.in_dim], 'nxf'),
                              'batch_index': tf.placeholder(tf.int32, [None], 'index'),
-                             't': tf.placeholder(tf.float32, [None, self.class_size], 'labels'),
+                             't': tf.placeholder(tf.float32, [None, self.out_dim], 'labels'),
                              'lr': tf.placeholder(tf.float32, [], 'learning_rate'),
                              'mom': tf.placeholder(tf.float32, [], 'momentum'),
                              'num_features_nonzero': tf.placeholder(tf.int32)}
@@ -46,7 +51,7 @@ class FdGars(Algorithm):
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
-        self.pred = tf.one_hot(tf.argmax(self.probabilities, 1), class_size)
+        self.pred = tf.one_hot(tf.argmax(self.probabilities, 1), self.out_dim)
         print(self.pred.shape)
         self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1), tf.argmax(self.placeholders['t'], 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, "float"))
@@ -61,22 +66,32 @@ class FdGars(Algorithm):
         print('Backward propagation finished.')
 
     def forward_propagation(self):
-        with tf.variable_scope('gcn'):
-            gcn_emb = []
-            for i in range(self.meta):
-                gcn_out = tf.reshape(GCN(self.placeholders, self.gcn_output1, self.embedding,
-                                         self.encoding, index=i).embedding(), [1, self.nodes * self.encoding])
-                gcn_emb.append(gcn_out)
-            gcn_emb = tf.concat(gcn_emb, 0)
-            gcn_emb = tf.reshape(gcn_emb, [self.nodes, self.encoding])
-            print('GCN embedding over!')
+        with tf.variable_scope('genie_path_forward'):
+            x = self.placeholders['x']
+            x = x[None, :]
+            x = tf.contrib.layers.fully_connected(x, self.dim, activation_fn=lambda x: x)
+
+            gplayers = [GeniePathLayer(self.placeholders, self.nodes, self.in_dim, self.dim)
+                        for i in range(self.layer_num)]
+            for i, l in enumerate(gplayers):
+                x, (h, c) = gplayers[i].forward(x, self.placeholders['a'], self.lstm_hidden, self.lstm_hidden)
+                x = x[None, :]
+            self.check = x
+            x = tf.contrib.layers.fully_connected(x, self.out_dim, activation_fn=lambda x: x)
+            x = tf.squeeze(x, 0)
+            print('geniePath embedding over!')
 
         with tf.variable_scope('classification'):
-            batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), gcn_emb)
-            logits = tf.nn.softmax(batch_data)
+            batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), x)
+            # W = tf.get_variable(name='weights',
+            #                     shape=[self.out_dim, self.class_size],
+            #                     initializer=tf.contrib.layers.xavier_initializer())
+            # b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
+            # logits = tf.matmul(batch_data, W) + b
+            logits = batch_data
             loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['t'], logits=logits)
 
-        return loss, tf.nn.sigmoid(logits)
+        return loss, tf.nn.softmax(logits)
 
     def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):
         feed_dict = utils.construct_feed_dict(x, a, t, b, learning_rate, momentum, self.placeholders)

@@ -1,36 +1,37 @@
 '''
-    GEM ('Heterogeneous Graph Neural Networks for Malicious Account Detection')
+    FdGars ('FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System')
 
     Parameters:
         nodes: total nodes number
-        meta: device number
-        hop:  the number of hops a vertex needs to look at, or the number of hidden layers
+        gcn_output1: the first gcn layer unit number
+        gcn_output2: the second gcn layer unit number
         embedding: node feature dim
-        encoding: nodes representation dim
+        encoding: nodes representation dim (predict class dim)
 '''
 
 import tensorflow as tf
-from base_models.model import GEMLayer
+from base_models.models import GCN
 from algorithms.base_algorithm import Algorithm
 from utils import utils
 
 
-class GEM(Algorithm):
+class FdGars(Algorithm):
 
     def __init__(self,
                  session,
                  nodes,
                  class_size,
+                 gcn_output1,
+                 gcn_output2,
                  meta,
                  embedding,
-                 encoding,
-                 hop):
+                 encoding):
         self.nodes = nodes
         self.meta = meta
         self.class_size = class_size
+        self.gcn_output1 = gcn_output1
         self.embedding = embedding
         self.encoding = encoding
-        self.hop = hop
 
         self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
                              'x': tf.placeholder(tf.float32, [self.nodes, self.embedding], 'nxf'),
@@ -45,12 +46,9 @@ class GEM(Algorithm):
         self.l2 = tf.contrib.layers.apply_regularization(tf.contrib.layers.l2_regularizer(0.01),
                                                          tf.trainable_variables())
 
-        x = tf.ones_like(self.probabilities)
-        y = tf.zeros_like(self.probabilities)
-        self.pred = tf.where(self.probabilities > 0.5, x=x, y=y)
-
+        self.pred = tf.one_hot(tf.argmax(self.probabilities, 1), class_size)
         print(self.pred.shape)
-        self.correct_prediction = tf.equal(self.pred, self.placeholders['t'])
+        self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1), tf.argmax(self.placeholders['t'], 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, "float"))
         print('Forward propagation finished.')
 
@@ -63,35 +61,21 @@ class GEM(Algorithm):
         print('Backward propagation finished.')
 
     def forward_propagation(self):
-        with tf.variable_scope('gem_embedding'):
-            h = tf.get_variable(name='init_embedding', shape=[self.nodes, self.encoding],
-                                initializer=tf.contrib.layers.xavier_initializer())
-            for i in range(0, self.hop):
-                f = GEMLayer(self.placeholders, self.nodes, self.meta, self.embedding, self.encoding)
-                gem_out = f(inputs=h)
-                h = tf.reshape(gem_out, [self.nodes, self.encoding])
-            print('GEM embedding over!')
+        with tf.variable_scope('gcn'):
+            gcn_emb = []
+            for i in range(self.meta):
+                gcn_out = tf.reshape(GCN(self.placeholders, self.gcn_output1, self.embedding,
+                                         self.encoding, index=i).embedding(), [1, self.nodes * self.encoding])
+                gcn_emb.append(gcn_out)
+            gcn_emb = tf.concat(gcn_emb, 0)
+            gcn_emb = tf.reshape(gcn_emb, [self.nodes, self.encoding])
+            print('GCN embedding over!')
 
         with tf.variable_scope('classification'):
-            batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), h)
-            W = tf.get_variable(name='weights',
-                                shape=[self.encoding, self.class_size],
-                                initializer=tf.contrib.layers.xavier_initializer())
-            b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
-            tf.transpose(batch_data, perm=[0, 1])
-            logits = tf.matmul(batch_data, W) + b
-
-            u = tf.get_variable(name='u',
-                                shape=[1, self.encoding],
-                                initializer=tf.contrib.layers.xavier_initializer())
-
+            batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), gcn_emb)
+            logits = tf.nn.softmax(batch_data)
             loss = tf.losses.sigmoid_cross_entropy(multi_class_labels=self.placeholders['t'], logits=logits)
 
-            # TODO
-            # loss = -tf.reduce_sum(
-            #     tf.log_sigmoid(self.placeholders['t'] * tf.matmul(u, tf.transpose(batch_data, perm=[1, 0]))))
-
-        # return loss, logits
         return loss, tf.nn.sigmoid(logits)
 
     def train(self, x, a, t, b, learning_rate=1e-2, momentum=0.9):

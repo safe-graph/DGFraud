@@ -589,3 +589,9 @@ class GeniePathLayer(Layer):
         x, (h, c) = self.depth_forward(x, h, c)
         x = x[0]
         return x, (h, c)
+
+    def lazy_forward(self, x, bias_in, h, c):
+        x = self.breadth_forward(x, bias_in)
+        x, (h, c) = self.depth_forward(x, h, c)
+        x = x[0]
+        return x, (h, c)

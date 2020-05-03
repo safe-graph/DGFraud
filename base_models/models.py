@@ -6,11 +6,9 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 
-##########################
-# Adapted from tkipf/gcn #
-##########################
-
 class Model(object):
+    '''Adapted from tkipf/gcn.'''
+
     def __init__(self, **kwargs):
         allowed_kwargs = {'name', 'logging'}
         for kwarg in kwargs.keys():
@@ -105,7 +103,6 @@ class GCN(Model):
 
     def embedding(self):
         return self.outputs
-
 
 # class BaseGAttN(object):
 #     def loss(logits, labels, nb_classes, class_weights):

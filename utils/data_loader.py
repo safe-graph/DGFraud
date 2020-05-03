@@ -14,7 +14,7 @@ def read_data_dzdp():
     return X_train, y_train, X_test, y_test
 
 
-def load_data_dblp(path='data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
+def load_data_dblp(path='../../data/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
@@ -128,6 +128,7 @@ def load_data_yelp():
 
 
 def load_data_example():
+    # example data for SpamGCN
     # construct U-E-I network
     user_review_adj = [[0, 1], [2], [3], [5], [4, 6]]
     user_review_adj = pad_adjlist(user_review_adj)
