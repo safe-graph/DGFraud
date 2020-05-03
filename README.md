@@ -130,14 +130,16 @@ The repository is organised as follows:
 <!--| **HACUD** |  |  |   |-->
 
 ## TODO List
-- The implementation of GraphConsis
+- GraphConsis Implementation
 - Add preprocessed Yelp datasets
 - The memory-efficient implementation of SemiGNN
 - The log loss for GEM model
+- Time-based sampling for GEM
 - Add sampling methods
 - Benchmarking SOTA models
-- Scalable Implementation
-- Pytorch Version
+- Scalable implementation
+- TensorFlow 2.0+ implementation
+- Pytorch version
 
 ## How to Contribute
 You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
