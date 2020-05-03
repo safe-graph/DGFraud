@@ -10,8 +10,8 @@
     <br>
 <p>
 <p align="center">
-    <a href="http://makeapullrequest.com">
-        <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
+    <a href="https://travis-ci.org/github/safe-graph/DGFraud">
+        <img alt="PRs Welcome" src="https://travis-ci.org/safe-graph/DGFraud.svg?branch=master">
     </a>
     <a href="https://github.com/safe-graph/DGFraud/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/safe-graph/DGFraud">
@@ -116,6 +116,7 @@ The repository is organised as follows:
 | **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/geniepath.txt)  |
 | **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
 <!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
+<!--| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |-->
 
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
@@ -128,6 +129,7 @@ The repository is organised as follows:
 | **GeniePath** | Financial Fraud | Homogeneous | GAT  |
 | **GEM** | Financial Fraud  | Heterogeneous |GCN |
 <!--| **HACUD** |  |  |   |-->
+<!--| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |-->
 
 ## TODO List
 - GraphConsis Implementation
