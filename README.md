@@ -32,7 +32,7 @@ Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for frau
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-If you feel this repo is useful, please cite the [paper]() below:
+If you feel this repo is useful, please cite the [paper]() below and the [algorithms](#implemented-models) you used :
 ```
 @inproceedings{liu2020alleviating,
   title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
@@ -108,7 +108,6 @@ The repository is organised as follows:
 
 | Model  | Paper  | Venue  | Reference  |
 |-------|--------|--------|--------|
-| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
 | **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://ieeexplore.ieee.org/abstract/document/8970829)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
 | **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/player2vec.txt)|
 | **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gas.txt) |
@@ -121,7 +120,6 @@ The repository is organised as follows:
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
 |-------|--------|--------|--------|
-| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |
 | **SemiGNN** | Financial Fraud  | Heterogeneous   | GAT, LINE, DeepWalk |
 | **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
 | **GAS** | Opinion Fraud  | Heterogeneous | GCN, GAT |
