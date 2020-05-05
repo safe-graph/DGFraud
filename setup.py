@@ -28,7 +28,7 @@ setup(name='DGFraud',
                         ],
       packages=find_packages(exclude=['test']),
       include_package_data=True,
-      setup_requires=['setuptools>=38.6.0'],
+      setup_requires=['setuptools>=41.0.1'],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Education',
