@@ -4,12 +4,14 @@
 
 <p align="center">
     <br>
-    <img src="https://github.com/safe-graph/DGFraud/DGFraud_logo.png" width="400"/>
+    <a href="https://image.flaticon.com/icons/svg/1671/1671517.svg">
+        <img src="https://github.com/safe-graph/DGFraud/blob/master/DGFraud_logo.png"/>
+    </a>
     <br>
 <p>
 <p align="center">
-    <a href="http://makeapullrequest.com">
-        <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
+    <a href="https://travis-ci.org/github/safe-graph/DGFraud">
+        <img alt="PRs Welcome" src="https://travis-ci.org/safe-graph/DGFraud.svg?branch=master">
     </a>
     <a href="https://github.com/safe-graph/DGFraud/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/safe-graph/DGFraud">
@@ -30,7 +32,7 @@ Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for frau
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-If you feel this repo is useful, please cite the [paper]() below:
+If you feel this repo is useful, please cite the [paper]() below and the [algorithms](#implemented-models) you used :
 ```
 @inproceedings{liu2020alleviating,
   title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
@@ -106,7 +108,6 @@ The repository is organised as follows:
 
 | Model  | Paper  | Venue  | Reference  |
 |-------|--------|--------|--------|
-| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
 | **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://ieeexplore.ieee.org/abstract/document/8970829)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
 | **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/Player2Vec.txt)|
 | **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gas.txt) |
@@ -114,11 +115,11 @@ The repository is organised as follows:
 | **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/geniepath.txt)  |
 | **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
 <!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
+<!--| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |-->
 
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
 |-------|--------|--------|--------|
-| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |
 | **SemiGNN** | Financial Fraud  | Heterogeneous   | GAT, LINE, DeepWalk |
 | **Player2Vec** | Cyber Criminal  | Heterogeneous | GAT, GCN|
 | **GAS** | Opinion Fraud  | Heterogeneous | GCN, GAT |
@@ -126,16 +127,19 @@ The repository is organised as follows:
 | **GeniePath** | Financial Fraud | Homogeneous | GAT  |
 | **GEM** | Financial Fraud  | Heterogeneous |GCN |
 <!--| **HACUD** |  |  |   |-->
+<!--| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |-->
 
 ## TODO List
-- The implementation of GraphConsis
+- GraphConsis Implementation
 - Add preprocessed Yelp datasets
 - The memory-efficient implementation of SemiGNN
 - The log loss for GEM model
+- Time-based sampling for GEM
 - Add sampling methods
 - Benchmarking SOTA models
-- Scalable Implementation
-- Pytorch Version
+- Scalable implementation
+- TensorFlow 2.0+ implementation
+- Pytorch version
 
 ## How to Contribute
 You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
