@@ -16,7 +16,7 @@
         <img alt="Downloads" src="https://img.shields.io/github/downloads/safe-graph/DGFraud/total">
     </a>
     <a href="https://github.com/safe-graph/DGFraud/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/v/release/safe-graph/DGFraud">
+        <img alt="GitHub release" src="https://img.shields.io/github/v/release/safe-graph/DGFraud?include_prereleases">
     </a>
 </p>
 
