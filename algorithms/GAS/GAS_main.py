@@ -1,13 +1,10 @@
-# -*- coding:utf-8 -*-
 '''
-This code is due to Yutong Deng (@yutongD)
-
-A graph neural network tool box for fraud detection.
-Example use:
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
-
 from algorithms.GAS.GAS import GAS
 import time
 from utils.data_loader import *
@@ -20,7 +17,7 @@ from utils.utils import *
 def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
@@ -56,7 +53,7 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_example()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]
         node_embedding_i = features[2].shape[1]

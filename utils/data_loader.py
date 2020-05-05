@@ -1,17 +1,20 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 import scipy.io as sio
-import yaml
 from utils.utils import pad_adjlist
+import zipfile
 
 
-def read_data_dzdp():
-    index = list(range(9067))
-    y = np.loadtxt('data/label.txt')
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4,
-                                                        random_state=48, shuffle=True)
-
-    return X_train, y_train, X_test, y_test
+# zip_src = '../dataset/DBLP4057_GAT_with_idx.mat.zip'
+# dst_dir = '../dataset'
+def unzip_file(zip_src, dst_dir):
+    iz = zipfile.is_zipfile(zip_src)
+    if iz:
+        zf = zipfile.ZipFile(zip_src, 'r')
+        for file in zf.namelist():
+            zf.extract(file, dst_dir)
+    else:
+        print('Zip Error.')
 
 
 def load_data_dblp(path='../dataset/DBLP4057_GAT_with_idx.mat'):
@@ -29,6 +32,7 @@ def load_data_dblp(path='../dataset/DBLP4057_GAT_with_idx.mat'):
 
 
 def load_example_semi():
+    # example data for SemiGNN
     features = np.array([[1, 1, 0, 0, 0, 0, 0],
                          [0, 0, 1, 0, 0, 0, 0],
                          [0, 0, 0, 1, 0, 0, 0],
@@ -64,6 +68,7 @@ def load_example_semi():
 
 
 def load_example_gem():
+    # example data for GEM
     # node=8  p=7  D=2
     features = np.array([[5, 3, 0, 1, 0, 0, 0, 1, 0],
                          [2, 3, 1, 2, 0, 0, 0, 1, 0],
@@ -101,33 +106,7 @@ def load_example_gem():
     return rownetworks, features, X_train, y_train, X_test, y_test
 
 
-def load_data_yelp():
-    # init vectors of review, user and item
-    review_vecs = np.loadtxt('data/yelp_data/yelp_review_tfidf.txt')
-    user_vecs = np.loadtxt('data/yelp_data/user_review_adj.txt')
-    item_vecs = np.loadtxt('data/yelp_data/item_review_adj.txt')
-    features = [review_vecs, user_vecs, item_vecs]
-
-    # init adj
-    file1 = open('data/yelp_data/user_review_adjlist.yaml', 'r')
-    user_review_adj = yaml.load(file1)
-    file2 = open('data/yelp_data/user_review_item_adjlist.yaml', 'r')
-    review_item_adj = yaml.load(file2)
-    file3 = open('data/yelp_data/item_review_adjlist.yaml', 'r')
-    item_review_adj = yaml.load(file3)
-    file4 = open('data/yelp_data/item_review_user_adjlist.yaml', 'r')
-    review_user_adj = yaml.load(file4)
-    adjs = [user_review_adj, review_item_adj, item_review_adj, review_user_adj]
-
-    y = np.loadtxt('data/yelp_data/review_label.txt')
-    index = range(len(y))
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
-                                                        shuffle=True)
-
-    return adjs, features, X_train, y_train, X_test, y_test
-
-
-def load_data_example():
+def load_data_gas():
     # example data for GAS
     # construct U-E-I network
     user_review_adj = [[0, 1], [2], [3], [5], [4, 6]]

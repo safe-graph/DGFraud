@@ -1,12 +1,16 @@
 '''
-    FdGars ('FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System')
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
-    Parameters:
-        nodes: total nodes number
-        gcn_output1: the first gcn layer unit number
-        gcn_output2: the second gcn layer unit number
-        embedding: node feature dim
-        encoding: nodes representation dim (predict class dim)
+FdGars ('FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System')
+
+Parameters:
+    nodes: total nodes number
+    gcn_output1: the first gcn layer unit number
+    gcn_output2: the second gcn layer unit number
+    embedding: node feature dim
+    encoding: nodes representation dim (predict class dim)
 '''
 
 import tensorflow as tf

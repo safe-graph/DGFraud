@@ -1,8 +1,11 @@
+'''
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+'''
 import tensorflow as tf
 import argparse
-
 from algorithms.FdGars.FdGars import FdGars
-
 import time
 from utils.data_loader import *
 from utils.utils import *
@@ -14,7 +17,7 @@ from utils.utils import *
 def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)

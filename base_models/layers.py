@@ -1,7 +1,10 @@
+'''
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+'''
 from base_models.inits import *
 import tensorflow as tf
-
-# from base_models.model import GAT
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -9,8 +12,8 @@ FLAGS = flags.FLAGS
 # global unique layer ID dictionary for layer name assignment
 _LAYER_UIDS = {}
 
+'''Code about GCN is adapted from tkipf/gcn.'''
 
-# Code about GCN is adapted from tkipf/gcn
 
 def get_layer_uid(layer_name=''):
     """Helper function, assigns unique layer IDs."""

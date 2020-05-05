@@ -67,12 +67,22 @@ cd DGFraud
 python setup.py install
 ```
 ### Requirements
+```bash
 * tensorflow>=1.14.0,<2.0
 * numpy>=1.16.4
 * scipy>=1.2.0
+```
 ### Dataset
-
-
+#### DBLP
+Copied the processed dataset from <a herf="https://github.com/Jhy1993/HAN">Jhy1993/HAN</a>.
+You can run the example code of model FdGars, Player2Vec, GeniePath and GEM on the DBLP dataset.
+Unzip the archive before using the dataset:
+```bash
+cd dataset
+unzip DBLP4057_GAT_with_idx.mat.zip
+```
+#### Example dataset
+We wrote the example dataset for SemiGNN, GAS and GEM in `data_loader.py`.
 ## User Guide
 Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
 ### Running the example code
@@ -101,9 +111,7 @@ The repository is organised as follows:
 - `dataset/` contains the necessary dataset files;
 - `utils/` contains:
     * loading and splitting the data (`data_loader.py`);
-    * contains various utilities (`utils.py`);
-    * preprocessing raw data (`process_dzdp.py and process_yelp.py`);
-    * computing ndcg score and ranking precision score (`cal_ndcg.py`).
+    * contains various utilities (`utils.py`).
 ## Implemented Models
 
 | Model  | Paper  | Venue  | Reference  |

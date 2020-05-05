@@ -1,12 +1,16 @@
 '''
-    GAS ('Spam Review Detection with Graph Convolutional Networks')
-    Parameters:
-        nodes: total nodes number
-        class_size: class number
-        embedding_i: item embedding size
-        embedding_u: user embedding size
-        embedding_r: review embedding size
-        gcn_dim: the gcn layer unit number
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+
+GAS ('Spam Review Detection with Graph Convolutional Networks')
+Parameters:
+    nodes: total nodes number
+    class_size: class number
+    embedding_i: item embedding size
+    embedding_u: user embedding size
+    embedding_r: review embedding size
+    gcn_dim: the gcn layer unit number
 '''
 
 

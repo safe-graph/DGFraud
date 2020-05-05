@@ -1,9 +1,7 @@
-# -*- coding:utf-8 -*-
 '''
-This code is due to Yutong Deng (@yutongD)
-
-A graph neural network tool box for fraud detection.
-Example use:
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
@@ -28,7 +26,7 @@ def arg_parser():
     parser.add_argument('--model', type=str, default='GAS',
                         help="['Player2vec', 'FdGars','GEM','SemiGNN','GAS','GeniePath']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
@@ -131,9 +129,9 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
         if args.model == 'GAS':
             adj_data = adj_list
             net = GAS(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
-                          embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
-                          encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
-                          encoding4=args.encoding4, gcn_dim=args.gcn_dim)
+                      embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
+                      encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
+                      encoding4=args.encoding4, gcn_dim=args.gcn_dim)
         if args.model == 'GEM':
             adj_data = adj_list
             meta_size = len(adj_list)  # device num
@@ -180,8 +178,8 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                 else:  # model Player2Vec, GAS， GEM or FdGars
                     batch_data, batch_label = get_data(index, args.batch_size, paras[3])
                     loss, acc, pred, prob = net.train(features, adj_data, batch_label,
-                                                             batch_data, args.learning_rate,
-                                                             args.momentum)
+                                                      batch_data, args.learning_rate,
+                                                      args.momentum)
 
                 print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
                 # print(prob, pred)
@@ -210,6 +208,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
+
 
 if __name__ == "__main__":
     args = arg_parser()
