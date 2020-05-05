@@ -5,7 +5,7 @@ from utils.utils import pad_adjlist
 import zipfile
 
 
-# zip_src = '../dataset/DBLP4057_GAT_with_idx.mat.zip'
+# zip_src = '../dataset/DBLP4057_GAT_with_idx_tra200_val_800.zip'
 # dst_dir = '../dataset'
 def unzip_file(zip_src, dst_dir):
     iz = zipfile.is_zipfile(zip_src)
@@ -17,7 +17,7 @@ def unzip_file(zip_src, dst_dir):
         print('Zip Error.')
 
 
-def load_data_dblp(path='../dataset/DBLP4057_GAT_with_idx.mat'):
+def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]

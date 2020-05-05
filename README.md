@@ -77,7 +77,7 @@ You can run the FdGars, Player2Vec, GeniePath and GEM based on the DBLP dataset.
 Unzip the archive before using the dataset:
 ```bash
 cd dataset
-unzip DBLP4057_GAT_with_idx.mat.zip
+unzip DBLP4057_GAT_with_idx_tra200_val_800.zip
 ```
 
 #### Example dataset
