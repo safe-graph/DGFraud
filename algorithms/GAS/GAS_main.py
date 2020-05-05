@@ -1,14 +1,11 @@
-# -*- coding:utf-8 -*-
 '''
-This code is due to Yutong Deng (@yutongD)
-
-A graph neural network tool box for fraud detection.
-Example use:
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
-
-from algorithms.SpamGCN.SpamGCN import SpamGCN
+from algorithms.GAS.GAS import GAS
 import time
 from utils.data_loader import *
 from utils.utils import *
@@ -20,13 +17,13 @@ from utils.utils import *
 def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
     parser.add_argument('--learning_rate', default=0.001, help='the ratio of training set in whole dataset.')
 
-    # SpamGCN
+    # GAS
     parser.add_argument('--review_num sample', default=7, help='review number.')
     parser.add_argument('--gcn_dim', type=int, default=5, help='gcn layer size.')
     parser.add_argument('--encoding1', type=int, default=64)
@@ -56,7 +53,7 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_example()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]
         node_embedding_i = features[2].shape[1]
@@ -78,7 +75,7 @@ def load_data(args):
 def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
     with tf.Session() as sess:
         adj_data = adj_list
-        net = SpamGCN(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
+        net = GAS(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
                       embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
                       encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
                       encoding4=args.encoding4, gcn_dim=args.gcn_dim)

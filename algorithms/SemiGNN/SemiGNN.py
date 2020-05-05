@@ -1,17 +1,21 @@
 '''
-    SemiGNN ('A Semi-supervised Graph Attentive Network for
-            Financial Fraud Detection')
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
-    Parameters:
-        nodes: total nodes number
-        semi_encoding1: node attention layer unit number
-        semi_encoding2: view attention layer unit number
-        semi_encoding3: MLP layer unit number
-        init_emb_size: the initial node embedding
-        meta: view number
-        gcn_output1: the first gcn layer unit number
-        gcn_output2: the second gcn layer unit number
-        ul: labeled users number
+SemiGNN ('A Semi-supervised Graph Attentive Network for
+        Financial Fraud Detection')
+
+Parameters:
+    nodes: total nodes number
+    semi_encoding1: node attention layer unit number
+    semi_encoding2: view attention layer unit number
+    semi_encoding3: MLP layer unit number
+    init_emb_size: the initial node embedding
+    meta: view number
+    gcn_output1: the first gcn layer unit number
+    gcn_output2: the second gcn layer unit number
+    ul: labeled users number
 '''
 
 import tensorflow as tf

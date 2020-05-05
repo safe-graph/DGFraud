@@ -1,19 +1,17 @@
-# -*- coding:utf-8 -*-
 '''
-This code is due to Yutong Deng (@yutongD)
-
-A graph neural network tool box for fraud detection.
-Example use:
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
 
 from algorithms.GEM.GEM import GEM
 from algorithms.GeniePath.GeniePath import GeniePath
-from algorithms.Player2vec.Player2vec import Player2Vec
+from algorithms.Player2Vec.Player2Vec import Player2Vec
 from algorithms.FdGars.FdGars import FdGars
 from algorithms.SemiGNN.SemiGNN import SemiGNN
-from algorithms.SpamGCN.SpamGCN import SpamGCN
+from algorithms.GAS.GAS import GAS
 import time
 from utils.data_loader import *
 from utils.utils import *
@@ -24,10 +22,11 @@ from utils.utils import *
 # init the common args, expect the model specific args
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='SpamGCN',
-                        help="['Player2vec', 'FdGars','GEM','SemiGNN','SpamGCN','GeniePath']")
+
+    parser.add_argument('--model', type=str, default='GAS',
+                        help="['Player2vec', 'FdGars','GEM','SemiGNN','GAS','GeniePath']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp', 'yelp','example']")
+    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
@@ -38,7 +37,7 @@ def arg_parser():
     parser.add_argument('--hidden2', default=16, help='Number of units in GCN hidden layer 2.')
     parser.add_argument('--gcn_output', default=4, help='gcn output size.')
 
-    # SpamGCN
+    # GAS
     parser.add_argument('--review_num sample', default=7, help='review number.')
     parser.add_argument('--gcn_dim', type=int, default=5, help='gcn layer size.')
     parser.add_argument('--encoding1', type=int, default=64)
@@ -96,7 +95,7 @@ def load_data(args):
         train_size = len(train_data)
         paras = [node_size, node_embedding, class_size, train_size]
     if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_example()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]
         node_embedding_i = features[2].shape[1]
@@ -117,7 +116,7 @@ def load_data(args):
 
 def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
     with tf.Session() as sess:
-        if args.model == 'Player2vec':
+        if args.model == 'Player2Vec':
             adj_data = [normalize_adj(adj) for adj in adj_list]
             meta_size = len(adj_list)
             net = Player2Vec(session=sess, class_size=paras[2], gcn_output1=args.hidden1,
@@ -127,12 +126,12 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
             meta_size = len(adj_list)  # meta=1 in FdGars
             net = FdGars(session=sess, class_size=paras[2], gcn_output1=args.hidden1, gcn_output2=args.hidden2,
                          meta=meta_size, nodes=paras[0], embedding=paras[1], encoding=args.gcn_output)
-        if args.model == 'SpamGCN':
+        if args.model == 'GAS':
             adj_data = adj_list
-            net = SpamGCN(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
-                          embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
-                          encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
-                          encoding4=args.encoding4, gcn_dim=args.gcn_dim)
+            net = GAS(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
+                      embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
+                      encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
+                      encoding4=args.encoding4, gcn_dim=args.gcn_dim)
         if args.model == 'GEM':
             adj_data = adj_list
             meta_size = len(adj_list)  # device num
@@ -176,11 +175,11 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                       batch_sup_label,
                                                       args.learning_rate,
                                                       args.momentum)
-                else:  # model player2vec, SpamGCN， GEM or FdGars
+                else:  # model Player2Vec, GAS， GEM or FdGars
                     batch_data, batch_label = get_data(index, args.batch_size, paras[3])
                     loss, acc, pred, prob = net.train(features, adj_data, batch_label,
-                                                             batch_data, args.learning_rate,
-                                                             args.momentum)
+                                                      batch_data, args.learning_rate,
+                                                      args.momentum)
 
                 print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
                 # print(prob, pred)
@@ -209,6 +208,7 @@ def train(args, adj_list, features, train_data, train_label, test_data, test_lab
                                                                           test_data)
 
     print("test acc:", test_acc)
+
 
 if __name__ == "__main__":
     args = arg_parser()

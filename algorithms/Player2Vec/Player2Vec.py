@@ -1,14 +1,18 @@
 '''
-    Player2Vec ('Key Player Identification in Underground Forums
-    over Attributed Heterogeneous Information Network Embedding Framework')
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
-    Parameters:
-        meta: meta-path number
-        nodes: total nodes number
-        gcn_output1: the first gcn layer unit number
-        gcn_output2: the second gcn layer unit number
-        embedding: node feature dim
-        encoding: nodes representation dim
+Player2Vec ('Key Player Identification in Underground Forums
+over Attributed Heterogeneous Information Network Embedding Framework')
+
+Parameters:
+    meta: meta-path number
+    nodes: total nodes number
+    gcn_output1: the first gcn layer unit number
+    gcn_output2: the second gcn layer unit number
+    embedding: node feature dim
+    encoding: nodes representation dim
 '''
 
 import tensorflow as tf

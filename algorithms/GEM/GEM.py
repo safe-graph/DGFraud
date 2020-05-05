@@ -1,12 +1,16 @@
 '''
-    GEM ('Heterogeneous Graph Neural Networks for Malicious Account Detection')
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
-    Parameters:
-        nodes: total nodes number
-        meta: device number
-        hop:  the number of hops a vertex needs to look at, or the number of hidden layers
-        embedding: node feature dim
-        encoding: nodes representation dim
+GEM ('Heterogeneous Graph Neural Networks for Malicious Account Detection')
+
+Parameters:
+    nodes: total nodes number
+    meta: device number
+    hop:  the number of hops a vertex needs to look at, or the number of hidden layers
+    embedding: node feature dim
+    encoding: nodes representation dim
 '''
 
 import tensorflow as tf

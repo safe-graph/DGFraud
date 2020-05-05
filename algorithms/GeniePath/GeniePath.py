@@ -1,13 +1,17 @@
 '''
-    GeniePath ('GeniePath: Graph Neural Networks with Adaptive Receptive Paths')
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
-    # Parameters:
-    #     nodes: total nodes number
-    #     in_dim: input feature dim
-    #     out_dim: output representation dim
-    #     dim: breadth forward layer unit
-    #     lstm_hidden: depth forward layer unit
-    #     layer_num: GeniePath layer num
+GeniePath ('GeniePath: Graph Neural Networks with Adaptive Receptive Paths')
+
+Parameters:
+    nodes: total nodes number
+    in_dim: input feature dim
+    out_dim: output representation dim
+    dim: breadth forward layer unit
+    lstm_hidden: depth forward layer unit
+    layer_num: GeniePath layer num
 '''
 
 import tensorflow as tf
