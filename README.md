@@ -1,7 +1,3 @@
-<h3 align="center">
-<p>Under Building Now. The first version is expected to be released in mid May, 2020.
-</h3>
-
 <p align="center">
     <br>
     <a href="https://image.flaticon.com/icons/svg/1671/1671517.svg">
@@ -32,7 +28,7 @@ Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for frau
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-If you feel this repo is useful, please cite the [paper]() below and the [algorithms](#implemented-models) you used :
+If you feel this repo is useful, please cite the [paper](https://arxiv.org/abs/2005.00625) below and the [algorithms](#implemented-models) you used :
 ```
 @inproceedings{liu2020alleviating,
   title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
@@ -68,29 +64,36 @@ python setup.py install
 ```
 ### Requirements
 ```bash
+* python 3.6, 3.7
 * tensorflow>=1.14.0,<2.0
 * numpy>=1.16.4
 * scipy>=1.2.0
 ```
 ### Dataset
+
 #### DBLP
-Copied the processed dataset from [Jhy1993/HAN](https://github.com/Jhy1993/HAN)
-You can run the example code of model FdGars, Player2Vec, GeniePath and GEM on the DBLP dataset.
+We uses the pre-processed DBLP dataset from [Jhy1993/HAN](https://github.com/Jhy1993/HAN)
+You can run the FdGars, Player2Vec, GeniePath and GEM based on the DBLP dataset.
 Unzip the archive before using the dataset:
 ```bash
 cd dataset
 unzip DBLP4057_GAT_with_idx.mat.zip
 ```
+
 #### Example dataset
-We wrote the example dataset for SemiGNN, GAS and GEM in `data_loader.py`.
+We implement example graphs for SemiGNN, GAS and GEM in `data_loader.py`. Because those models require unique graph structures or node types, which cannot be found in opensource datasets.
+
+
 ## User Guide
-Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
+
 ### Running the example code
+You can find the implemented models in `algorithms` directory. For example, you can run Player2Vec using:
 ```bash
 python Player2Vec_main.py 
 ```
-you can specify parameters for models when running the code.
-### Running on your dataset
+You can specify parameters for models when running the code.
+
+### Running on your datasets
 Have a look at the load_data_dblp() function in utils/utils.py for an example.
 
 In order to use your own data, you have to provide:
@@ -104,14 +107,17 @@ You can specify a dataset as follows:
 python xx_main.py --dataset your_dataset 
 ```
 or by editing xx_main.py
+
 ### The structure of code
-The repository is organised as follows:
+The repository is organized as follows:
 - `algorithms/` contains the implemented models and the corresponding example code;
 - `base_models/` contains the basic models (GCN);
 - `dataset/` contains the necessary dataset files;
 - `utils/` contains:
     * loading and splitting the data (`data_loader.py`);
     * contains various utilities (`utils.py`).
+
+
 ## Implemented Models
 
 | Model  | Paper  | Venue  | Reference  |
