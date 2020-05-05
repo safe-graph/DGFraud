@@ -5,7 +5,7 @@
 <p align="center">
     <br>
     <a href="https://image.flaticon.com/icons/svg/1671/1671517.svg">
-        <img src="https://github.com/safe-graph/DGFraud/blob/master/DGFraud_logo.png"/>
+        <img src="https://github.com/safe-graph/DGFraud/blob/master/DGFraud_logo.png" width="400"/>
     </a>
     <br>
 <p>
