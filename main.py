@@ -87,8 +87,6 @@ def get_data(ix, int_batch, train_size):
 def load_data(args):
     if args.dataset_str == 'dblp':
         adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
-        # adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
-        # adj_list, features, train_data, train_label, test_data, test_label = load_example_gem()
         node_size = features.shape[0]
         node_embedding = features.shape[1]
         class_size = train_label.shape[1]

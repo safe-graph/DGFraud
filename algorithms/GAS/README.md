@@ -20,7 +20,7 @@ GAS directly aggregates neighbors with different node types.
 
 ## Input Format
 
-The input is a heterogeneous graph. We use a small example graph in our toolbox. You can find the example graph structure in **load_example_gas** function in \utils\dataloader.py. If you want to use your own graph as the input, just follow the same format like the example graph. 
+The input is a heterogeneous graph. We use a small example graph in our toolbox. You can find the example graph structure in **load_example_gas** function in `\utils\dataloader.py`. If you want to use your own graph as the input, just follow the same format like the example graph. 
 
 ## TODO List
 
