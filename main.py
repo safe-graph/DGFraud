@@ -95,7 +95,7 @@ def load_data(args):
         train_size = len(train_data)
         paras = [node_size, node_embedding, class_size, train_size]
     if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_example()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]
         node_embedding_i = features[2].shape[1]
