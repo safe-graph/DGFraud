@@ -128,7 +128,7 @@ def load_data_yelp():
 
 
 def load_data_example():
-    # example data for SpamGCN
+    # example data for GAS
     # construct U-E-I network
     user_review_adj = [[0, 1], [2], [3], [5], [4, 6]]
     user_review_adj = pad_adjlist(user_review_adj)

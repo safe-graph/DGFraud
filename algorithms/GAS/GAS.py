@@ -1,5 +1,5 @@
 '''
-    SpamGCN ('Spam Review Detection with Graph Convolutional Networks')
+    GAS ('Spam Review Detection with Graph Convolutional Networks')
     Parameters:
         nodes: total nodes number
         class_size: class number
@@ -16,7 +16,7 @@ from base_models.layers import AttentionLayer, ConcatenationAggregator, Attentio
 from algorithms.base_algorithm import Algorithm
 
 
-class SpamGCN(Algorithm):
+class GAS(Algorithm):
     def __init__(self, session, nodes, class_size, embedding_i, embedding_u, embedding_r, h_u_size, h_i_size,
                  encoding1, encoding2, encoding3, encoding4, gcn_dim, meta=1, concat=True, **kwargs):
         super().__init__(**kwargs)

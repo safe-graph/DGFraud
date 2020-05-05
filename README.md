@@ -61,7 +61,7 @@ If you feel this repo is useful, please cite the [paper]() below:
 ## Installation
 ```bash
 git clone https://github.com/safe-graph/DGFraud.git
-cd transformers
+cd DGFraud
 python setup.py install
 ```
 ### Requirements
@@ -75,14 +75,14 @@ python setup.py install
 Introduce how to run the code from the command line, how to run the code from IDE, how to fine-tune the model, the structure of code, the function of different directories, how to load graphs, how to evaluate the models.
 ### Running the example code
 ```bash
-python Player2vec_main.py 
+python Player2Vec_main.py 
 ```
 you can specify parameters for models when running the code.
 ### Running on your dataset
 Have a look at the load_data_dblp() function in utils/utils.py for an example.
 
 In order to use your own data, you have to provide:
-* adjacency matrices or adjlists (for SpamGCN);
+* adjacency matrices or adjlists (for GAS);
 * a feature matrix
 * a label matrix
 then split feature matrix and label matrix into testing data and training data.
@@ -108,7 +108,7 @@ The repository is organised as follows:
 |-------|--------|--------|--------|
 | **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
 | **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://ieeexplore.ieee.org/abstract/document/8970829)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
-| **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/player2vec.txt)|
+| **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/Player2Vec.txt)|
 | **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gas.txt) |
 | **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | WWW 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/fdgars.txt) |
 | **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/geniepath.txt)  |

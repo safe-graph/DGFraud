@@ -10,10 +10,10 @@ import argparse
 
 from algorithms.GEM.GEM import GEM
 from algorithms.GeniePath.GeniePath import GeniePath
-from algorithms.Player2vec.Player2vec import Player2Vec
+from algorithms.Player2Vec.Player2Vec import Player2Vec
 from algorithms.FdGars.FdGars import FdGars
 from algorithms.SemiGNN.SemiGNN import SemiGNN
-from algorithms.SpamGCN.SpamGCN import SpamGCN
+from algorithms.GAS.GAS import GAS
 import time
 from utils.data_loader import *
 from utils.utils import *
