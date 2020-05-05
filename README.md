@@ -74,7 +74,7 @@ python setup.py install
 ```
 ### Dataset
 #### DBLP
-Copied the processed dataset from <a herf="https://github.com/Jhy1993/HAN">Jhy1993/HAN</a>.
+Copied the processed dataset from [Jhy1993/HAN](https://github.com/Jhy1993/HAN)
 You can run the example code of model FdGars, Player2Vec, GeniePath and GEM on the DBLP dataset.
 Unzip the archive before using the dataset:
 ```bash
