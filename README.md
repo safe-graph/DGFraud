@@ -28,7 +28,7 @@ Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for frau
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-If you feel this repo is useful, please cite the [paper](https://arxiv.org/abs/2005.00625) below and the [algorithms](#implemented-models) you used :
+If you use the toolbox in your project, please cite the [paper](https://arxiv.org/abs/2005.00625) below and the [algorithms](#implemented-models) you used :
 ```
 @inproceedings{liu2020alleviating,
   title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
