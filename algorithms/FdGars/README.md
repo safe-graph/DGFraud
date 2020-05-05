@@ -16,7 +16,7 @@ The FdGars model is proposed by the [paper](https://dl.acm.org/citation.cfm?id=3
 
 ## Brief Introduction
 
-It applies vanilla GCN to spam detection problems with handcrafted features.
+It applies [vanilla GCN](https://arxiv.org/abs/1609.02907) to spam detection problems with handcrafted features.
 
 ## Input Format
 
