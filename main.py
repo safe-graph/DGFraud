@@ -23,10 +23,10 @@ from utils.utils import *
 def arg_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model', type=str, default='GAS',
-                        help="['Player2vec', 'FdGars','GEM','SemiGNN','GAS','GeniePath']")
+    parser.add_argument('--model', type=str, default='Player2Vec',
+                        help="['Player2Vec', 'FdGars','GEM','SemiGNN','GAS','GeniePath']")
     parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
+    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp','example']")
     parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--momentum', type=int, default=0.9)
@@ -86,7 +86,8 @@ def get_data(ix, int_batch, train_size):
 
 def load_data(args):
     if args.dataset_str == 'dblp':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
+        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp(
+            'dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat')
         node_size = features.shape[0]
         node_embedding = features.shape[1]
         class_size = train_label.shape[1]

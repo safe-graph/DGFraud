@@ -79,7 +79,7 @@ You can run the example code of model FdGars, Player2Vec, GeniePath and GEM on t
 Unzip the archive before using the dataset:
 ```bash
 cd dataset
-unzip DBLP4057_GAT_with_idx.mat.zip
+unzip DBLP4057_GAT_with_idx_tra200_val_800.zip
 ```
 #### Example dataset
 We wrote the example dataset for SemiGNN, GAS and GEM in `data_loader.py`.
