@@ -5,6 +5,8 @@ https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
+import sys
+sys.path.insert(0, sys.path[0] + '/../..')
 from algorithms.GEM.GEM import GEM
 import time
 from utils.data_loader import *

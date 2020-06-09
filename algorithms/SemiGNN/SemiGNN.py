@@ -8,13 +8,11 @@ SemiGNN ('A Semi-supervised Graph Attentive Network for
 
 Parameters:
     nodes: total nodes number
-    semi_encoding1: node attention layer unit number
-    semi_encoding2: view attention layer unit number
+    semi_encoding1: the first view attention layer unit number
+    semi_encoding2: the second view attention layer unit number
     semi_encoding3: MLP layer unit number
     init_emb_size: the initial node embedding
     meta: view number
-    gcn_output1: the first gcn layer unit number
-    gcn_output2: the second gcn layer unit number
     ul: labeled users number
 '''
 
@@ -48,12 +46,12 @@ class SemiGNN(Algorithm):
         self.ul = ul
         self.alpha = alpha
         self.lamtha = lamtha
-        self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, None], 'adj'),
+        self.placeholders = {'a': tf.placeholder(tf.float32, [self.meta, self.nodes, self.nodes], 'adj'),
                              'u_i': tf.placeholder(tf.float32, [None, ], 'u_i'),
                              'u_j': tf.placeholder(tf.float32, [None, ], 'u_j'),
                              'batch_index': tf.placeholder(tf.int32, [None], 'index'),
-                             'sup_t': tf.placeholder(tf.float32, [None, self.class_size], 'sup_t'),
-                             'graph_t': tf.placeholder(tf.float32, [None, 1], 'graph_t'),
+                             'sup_label': tf.placeholder(tf.float32, [None, self.class_size], 'sup_label'),
+                             'graph_label': tf.placeholder(tf.float32, [None, 1], 'graph_label'),
                              'lr': tf.placeholder(tf.float32, [], 'learning_rate'),
                              'mom': tf.placeholder(tf.float32, [], 'momentum'),
                              'num_features_nonzero': tf.placeholder(tf.int32)}
@@ -64,7 +62,8 @@ class SemiGNN(Algorithm):
                                                          tf.trainable_variables())
 
         print(self.pred.shape)
-        self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1), tf.argmax(self.placeholders['sup_t'], 1))
+        self.correct_prediction = tf.equal(tf.argmax(self.probabilities, 1),
+                                           tf.argmax(self.placeholders['sup_label'], 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, "float"))
         print('Forward propagation finished.')
 
@@ -80,24 +79,24 @@ class SemiGNN(Algorithm):
         with tf.variable_scope('node_level_attention', reuse=tf.AUTO_REUSE):
             h1 = []
             for i in range(self.meta):
-                emb = tf.get_variable(name='init_embedding', shape=[self.nodes, self.nodes, self.init_emb_size],
+                emb = tf.get_variable(name='init_embedding', shape=[self.nodes, self.init_emb_size],
                                       initializer=tf.contrib.layers.xavier_initializer())
-                h = AttentionLayer.node_attention(inputs=emb, encoding=self.semi_encoding1)
-                h = tf.reshape(h, [self.nodes, self.semi_encoding1])
+                h = AttentionLayer.node_attention(inputs=emb, adj=self.placeholders['a'][i])
+                h = tf.reshape(h, [self.nodes, emb.shape[1]])
                 h1.append(h)
             h1 = tf.concat(h1, 0)
-            h1 = tf.reshape(h1, [self.meta, self.nodes * self.semi_encoding1])
+            h1 = tf.reshape(h1, [self.meta, self.nodes, self.init_emb_size])
             print('Node_level attention over!')
 
         with tf.variable_scope('view_level_attention'):
-            h2 = AttentionLayer.view_attention(inputs=h1, encoding=(self.semi_encoding2 * self.nodes), meta=self.meta)
+            h2 = AttentionLayer.view_attention(inputs=h1, layer_size=2,
+                                               meta=self.meta, encoding1=self.semi_encoding1,
+                                               encoding2=self.semi_encoding2)
             h2 = tf.reshape(h2, [self.nodes, self.semi_encoding2 * self.meta])
             print('View_level attention over!')
 
         with tf.variable_scope('MLP'):
-            W1 = tf.get_variable(name='weights_1', shape=[self.semi_encoding2 * self.meta, self.semi_encoding3],
-                                 initializer=tf.contrib.layers.xavier_initializer())
-            h3 = tf.matmul(h2, W1)  # pair
+            h3 = tf.layers.dense(inputs=h2, units=self.semi_encoding3, activation=None)
 
         with tf.variable_scope('loss'):
             batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), h3)
@@ -109,16 +108,13 @@ class SemiGNN(Algorithm):
             prob = tf.nn.sigmoid(logits)
             pred = tf.one_hot(tf.argmax(prob, 1), self.class_size)
 
-            flag = (tf.cast(tf.reduce_sum(
-                tf.cast(tf.equal(self.placeholders['sup_t'], pred), dtype=tf.int32), 1), dtype=tf.bool))
-            flag = tf.expand_dims(tf.cast(flag, tf.float32), 1)
             loss1 = -(1 / self.ul) * tf.reduce_sum(
-                flag * tf.log(tf.nn.softmax(logits)))
+                self.placeholders['sup_label'] * tf.log(tf.nn.softmax(logits)))
 
             u_i_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_i'], dtype=tf.int32))
             u_j_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_j'], dtype=tf.int32))
             inner_product = tf.reduce_sum(u_i_embedding * u_j_embedding, axis=1)
-            loss2 = -tf.reduce_mean(tf.log_sigmoid(self.placeholders['graph_t'] * inner_product))
+            loss2 = -tf.reduce_mean(tf.log_sigmoid(self.placeholders['graph_label'] * inner_product))
 
             loss = self.alpha * loss1 + (1 - self.alpha) * loss2
         return loss, prob, pred

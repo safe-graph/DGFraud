@@ -43,6 +43,7 @@ def load_example_semi():
                          [0, 0, 0, 0, 0, 1, 1]
                          ])
     N = features.shape[0]
+    # Here we use binary matrix as adjacency matrix, weighted matrix is acceptable as well
     rownetworks = [np.array([[1, 0, 0, 1, 0, 1, 1, 1],
                              [1, 0, 0, 1, 1, 1, 0, 1],
                              [1, 0, 0, 0, 0, 0, 0, 1],

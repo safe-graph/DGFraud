@@ -5,6 +5,8 @@ https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
+import sys
+sys.path.insert(0, sys.path[0] + '/../..')
 from algorithms.Player2Vec.Player2Vec import Player2Vec
 import time
 from utils.data_loader import *

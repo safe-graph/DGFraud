@@ -5,6 +5,8 @@ https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
+import sys
+sys.path.insert(0, sys.path[0] + '/../..')
 from algorithms.GeniePath.GeniePath import GeniePath
 import time
 from utils.data_loader import *
