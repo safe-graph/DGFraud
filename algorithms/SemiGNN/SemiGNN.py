@@ -96,23 +96,23 @@ class SemiGNN(Algorithm):
             print('View_level attention over!')
 
         with tf.variable_scope('MLP'):
-            h3 = tf.layers.dense(inputs=h2, units=self.semi_encoding3, activation=None)
+            a_u = tf.layers.dense(inputs=h2, units=self.semi_encoding3, activation=None)
 
         with tf.variable_scope('loss'):
-            batch_data = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), h3)
-            W2 = tf.get_variable(name='weights_2', shape=[self.semi_encoding3, self.class_size],
-                                 initializer=tf.contrib.layers.xavier_initializer())
-            b = tf.get_variable(name='bias', shape=[1, self.class_size], initializer=tf.zeros_initializer())
-            tf.transpose(batch_data, perm=[0, 1])
-            logits = tf.matmul(batch_data, W2) + b
+            # for the labeled users, use softmax to get the classiﬁcation result.
+            labeled_a_u = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), a_u)
+            theta = tf.get_variable(name='weights_2', shape=[self.semi_encoding3, self.class_size],
+                                    initializer=tf.contrib.layers.xavier_initializer())
+
+            logits = tf.matmul(labeled_a_u, theta)
             prob = tf.nn.sigmoid(logits)
             pred = tf.one_hot(tf.argmax(prob, 1), self.class_size)
 
             loss1 = -(1 / self.ul) * tf.reduce_sum(
                 self.placeholders['sup_label'] * tf.log(tf.nn.softmax(logits)))
 
-            u_i_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_i'], dtype=tf.int32))
-            u_j_embedding = tf.nn.embedding_lookup(h3, tf.cast(self.placeholders['u_j'], dtype=tf.int32))
+            u_i_embedding = tf.nn.embedding_lookup(a_u, tf.cast(self.placeholders['u_i'], dtype=tf.int32))
+            u_j_embedding = tf.nn.embedding_lookup(a_u, tf.cast(self.placeholders['u_j'], dtype=tf.int32))
             inner_product = tf.reduce_sum(u_i_embedding * u_j_embedding, axis=1)
             loss2 = -tf.reduce_mean(tf.log_sigmoid(self.placeholders['graph_label'] * inner_product))
 

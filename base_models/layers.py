@@ -199,7 +199,7 @@ class AttentionLayer(Layer):
 
     def node_attention(inputs, adj, return_weights=False):
         hidden_size = inputs.shape[-1].value
-        H_v = tf.Variable(tf.random_normal([hidden_size, 1], stddev=0.1))  # 可以改名h 论文一致   add comment
+        H_v = tf.Variable(tf.random_normal([hidden_size, 1], stddev=0.1))
 
         # convert adj to sparse tensor
         zero = tf.constant(0, dtype=tf.float32)
