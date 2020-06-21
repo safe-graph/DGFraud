@@ -93,7 +93,17 @@ def load_data(args):
         class_size = train_label.shape[1]
         train_size = len(train_data)
         paras = [node_size, node_embedding, class_size, train_size]
-    if args.dataset_str == 'example': # 加别的算法
+    if args.dataset_str == 'example' and args.model != 'GAS':
+        if args.model == 'GEM':
+            adj_list, features, train_data, train_label, test_data, test_label = load_example_gem()
+        if args.model == 'SemiGNN':
+            adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
+        node_size = features.shape[0]
+        node_embedding = features.shape[1]
+        class_size = train_label.shape[1]
+        train_size = len(train_data)
+        paras = [node_size, node_embedding, class_size, train_size]
+    if args.dataset_str == 'example' and args.model == 'GAS':
         adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]
