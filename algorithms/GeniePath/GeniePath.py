@@ -13,9 +13,10 @@ Parameters:
     lstm_hidden: depth forward layer unit
     layer_num: GeniePath layer num
 '''
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
-
 from base_models.layers import GeniePathLayer
 from algorithms.base_algorithm import Algorithm
 from utils import utils

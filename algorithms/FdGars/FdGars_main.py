@@ -3,10 +3,12 @@ This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC
 DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
 https://github.com/safe-graph/DGFraud
 '''
+
 import tensorflow as tf
 import argparse
+import os
 import sys
-sys.path.insert(0, sys.path[0] + '/../..')
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 from algorithms.FdGars.FdGars import FdGars
 import time
 from utils.data_loader import *

@@ -15,7 +15,9 @@ Parameters:
     meta: view number
     ul: labeled users number
 '''
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
 from algorithms.base_algorithm import Algorithm
 from base_models.layers import AttentionLayer
@@ -101,7 +103,7 @@ class SemiGNN(Algorithm):
         with tf.variable_scope('loss'):
             # for the labeled users, use softmax to get the classiﬁcation result.
             labeled_a_u = tf.matmul(tf.one_hot(self.placeholders['batch_index'], self.nodes), a_u)
-            theta = tf.get_variable(name='weights_2', shape=[self.semi_encoding3, self.class_size],
+            theta = tf.get_variable(name='theta', shape=[self.semi_encoding3, self.class_size],
                                     initializer=tf.contrib.layers.xavier_initializer())
 
             logits = tf.matmul(labeled_a_u, theta)

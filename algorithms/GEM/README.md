@@ -16,7 +16,7 @@ The GEM model is proposed by the [paper](https://dl.acm.org/citation.cfm?id=3272
 
 ## Brief Introduction
 
-TODO
+A heterogeneous graph neural network approach for detecting malicious accounts.
 
 ## Input Format
 

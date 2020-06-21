@@ -26,3 +26,4 @@ The input graph is homogeneous. In our toolbox, it takes a homo-graph from DBLP 
 ## TODO List
 
 - The performance of GeniePath on DBLP needs to be tuned. 
+- The implementation of GeniePath-lazy

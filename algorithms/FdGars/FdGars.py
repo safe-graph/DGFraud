@@ -12,7 +12,9 @@ Parameters:
     embedding: node feature dim
     encoding: nodes representation dim (predict class dim)
 '''
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
 from base_models.models import GCN
 from algorithms.base_algorithm import Algorithm
