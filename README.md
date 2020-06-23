@@ -51,6 +51,7 @@ If you use the toolbox in your project, please cite the [paper](https://arxiv.or
 
 **Table of Contents**
 - [Installation](#installation)
+- [Datasets](#datasets)
 - [User Guide](#user-guide)
 - [Implemented Models](#implemented-models)
 - [Model Comparison](#model-comparison)
@@ -71,9 +72,9 @@ python setup.py install
 * numpy>=1.16.4
 * scipy>=1.2.0
 ```
-### Dataset
+## Datasets
 
-#### DBLP
+### DBLP
 We uses the pre-processed DBLP dataset from [Jhy1993/HAN](https://github.com/Jhy1993/HAN)
 You can run the FdGars, Player2Vec, GeniePath and GEM based on the DBLP dataset.
 Unzip the archive before using the dataset:
@@ -82,11 +83,11 @@ cd dataset
 unzip DBLP4057_GAT_with_idx_tra200_val_800.zip
 ```
 
-#### Example dataset
+### Example dataset
 We implement example graphs for SemiGNN, GAS and GEM in `data_loader.py`. Because those models require unique graph structures or node types, which cannot be found in opensource datasets.
 
 
-#### Yelp dataset
+### Yelp dataset
 For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges. There are two kinds of node features, the 100-dimension Bag-of-words feature and 32-dimension handcrafted feature from [SpEagle paper](https://www.andrew.cmu.edu/user/lakoglu/pubs/15-kdd-collectiveopinionspam.pdf).
 
 The dataset is located at `/dataset/YelpChi.zip`. It is organized as follows:
