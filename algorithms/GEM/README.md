@@ -2,7 +2,7 @@
 # GEM
 
 ## Paper
-The GEM model is proposed by the [paper](https://dl.acm.org/citation.cfm?id=3272010) below:
+The GEM model is proposed by the [paper](https://arxiv.org/pdf/2002.12307.pdf) below:
 ```bibtex
 @inproceedings{liu2018heterogeneous,
   title={Heterogeneous graph neural networks for malicious account detection},

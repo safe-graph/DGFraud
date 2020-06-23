@@ -2,7 +2,7 @@
 # SemiGNN
 
 ## Paper
-The SemiGNN model is proposed by the [paper](https://ieeexplore.ieee.org/abstract/document/8970829) below:
+The SemiGNN model is proposed by the [paper](https://arxiv.org/pdf/2003.01171) below:
 ```bibtex
 @inproceedings{wang2019semi,
   title={A Semi-supervised Graph Attentive Network for Financial Fraud Detection},
@@ -26,5 +26,5 @@ The input is a heterogeneous graph. We use a small example graph in our toolbox.
 ## TODO List
 
 - The memory-efficient implementation.
-- Testing a large-scale graphs. 
+- Testing large-scale graphs. 
 

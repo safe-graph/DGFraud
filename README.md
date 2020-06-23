@@ -84,6 +84,17 @@ unzip DBLP4057_GAT_with_idx_tra200_val_800.zip
 We implement example graphs for SemiGNN, GAS and GEM in `data_loader.py`. Because those models require unique graph structures or node types, which cannot be found in opensource datasets.
 
 
+#### Yelp dataset
+For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges. There are two kinds of node features, the 100-dimension Bag-of-words fearture and 32-dimension handcrafted feature from [SpEagle paper](https://www.andrew.cmu.edu/user/lakoglu/pubs/15-kdd-collectiveopinionspam.pdf).
+
+The dataset is located at `/dataset/YelpChi.zip`. It is organized as follows:
+- `adj_lists.pickle` contains a list `[rur, rtr, rsr]` which includes adjacency lists of three homo-graphs defined in [GraphConsis](https://arxiv.org/abs/2005.00625) paper;
+- `bow_feature.pickle` contains the Bag-of-words features in `scipy.sparse.coo_matrix` format;
+- `hand_feature.pickle` contains the handcrafted features in `scipy.sparse.coo_matrix` format;
+- `labels.pickle` contains the ground truth of reviews in `numpy.array` format. 1 represents spam and 0 represents benign review.
+
+To get the complete metadata of Yelp dataset, please send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
+
 ## User Guide
 
 ### Running the example code
@@ -122,12 +133,12 @@ The repository is organized as follows:
 
 | Model  | Paper  | Venue  | Reference  |
 |-------|--------|--------|--------|
-| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://ieeexplore.ieee.org/abstract/document/8970829)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
+| **SemiGNN** | [A Semi-supervised Graph Attentive Network for Financial Fraud Detection](https://arxiv.org/pdf/2003.01171)  | ICDM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/semignn.txt) |
 | **Player2Vec** | [Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf)  | CIKM 2019  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/player2vec.txt)|
 | **GAS** | [Spam Review Detection with Graph Convolutional Networks](https://arxiv.org/abs/1908.10679)  | CIKM 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gas.txt) |
 | **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | WWW 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/fdgars.txt) |
 | **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/geniepath.txt)  |
-| **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://dl.acm.org/citation.cfm?id=3272010)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
+| **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://arxiv.org/pdf/2002.12307.pdf)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
 <!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
 <!--| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |-->
 
@@ -145,8 +156,7 @@ The repository is organized as follows:
 
 ## TODO List
 - GraphConsis Implementation
-- Add preprocessed Yelp datasets
-- The memory-efficient implementation of SemiGNN
+- Implementing mini-batch training
 - The log loss for GEM model
 - Time-based sampling for GEM
 - Add sampling methods

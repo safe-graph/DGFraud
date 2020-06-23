@@ -1,5 +1,5 @@
 '''
-This code is due to Yutong Deng (@yutongD), Yingtong Dou (@Yingtong Dou) and UIC BDSC Lab
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@YingtongDou) and UIC BDSC Lab
 DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
 https://github.com/safe-graph/DGFraud
 '''
