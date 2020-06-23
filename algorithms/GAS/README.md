@@ -3,7 +3,7 @@
 
 ## Paper
 The GAS model is proposed by the [paper](https://arxiv.org/abs/1908.10679) below:
-```
+```bibtex
 @inproceedings{li2019spam,
   title={Spam Review Detection with Graph Convolutional Networks},
   author={Li, Ao and Qin, Zhou and Liu, Runshi and Yang, Yiqun and Li, Dong},

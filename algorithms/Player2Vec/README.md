@@ -3,7 +3,7 @@
 
 ## Paper
 The Player2Vec model is proposed by the [paper](http://mason.gmu.edu/~lzhao9/materials/papers/lp0110-zhangA.pdf) below:
-```
+```bibtex
 @inproceedings{zhang2019key,
   title={Key Player Identification in Underground Forums over Attributed Heterogeneous Information Network Embedding Framework},
   author={Zhang, Yiming and Fan, Yujie and Ye, Yanfang and Zhao, Liang and Shi, Chuan},

@@ -3,7 +3,7 @@
 
 ## Paper
 The GeniePath model is proposed by the [paper](https://arxiv.org/abs/1802.00910) below:
-```
+```bibtex
 @inproceedings{liu2019geniepath,
   title={Geniepath: Graph neural networks with adaptive receptive paths},
   author={Liu, Ziqi and Chen, Chaochao and Li, Longfei and Zhou, Jun and Li, Xiaolong and Song, Le and Qi, Yuan},
