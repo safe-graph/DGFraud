@@ -14,7 +14,9 @@ Parameters:
     embedding: node feature dim
     encoding: nodes representation dim
 '''
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
 from base_models.models import GCN
 from base_models.layers import AttentionLayer
@@ -73,8 +75,6 @@ class Player2Vec(Algorithm):
             for i in range(self.meta):
                 gcn_out = tf.reshape(GCN(self.placeholders, self.gcn_output1, self.embedding,
                                          self.encoding, index=i).embedding(), [1, self.nodes * self.encoding])
-                # gcn_out = tf.reshape(GCN(x, A[i], self.gcn_output1, self.embedding,
-                #                          self.encoding).embedding(), [1, self.nodes * self.encoding])
                 gcn_emb.append(gcn_out)
             gcn_emb = tf.concat(gcn_emb, 0)
             assert gcn_emb.shape == [self.meta, self.nodes * self.encoding]

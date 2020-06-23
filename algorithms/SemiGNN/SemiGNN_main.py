@@ -5,6 +5,9 @@ https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
 import argparse
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 from algorithms.SemiGNN.SemiGNN import SemiGNN
 import time
 from utils.data_loader import *
@@ -25,8 +28,8 @@ def arg_parser():
 
     # SemiGNN
     parser.add_argument('--init_emb_size', default=4, help='initial node embedding size')
-    parser.add_argument('--semi_encoding1', default=3, help='node attention layer units')
-    parser.add_argument('--semi_encoding2', default=2, help='view attention layer units')
+    parser.add_argument('--semi_encoding1', default=3, help='the first view attention layer unit number')
+    parser.add_argument('--semi_encoding2', default=2, help='the second view attention layer unit number')
     parser.add_argument('--semi_encoding3', default=4, help='one-layer perceptron units')
     parser.add_argument('--Ul', default=8, help='labeled users number')
     parser.add_argument('--alpha', default=0.5, help='loss alpha')

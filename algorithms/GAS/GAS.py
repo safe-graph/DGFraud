@@ -12,8 +12,9 @@ Parameters:
     embedding_r: review embedding size
     gcn_dim: the gcn layer unit number
 '''
-
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
 from base_models.models import GCN
 from base_models.layers import AttentionLayer, ConcatenationAggregator, AttentionAggregator, GASConcatenation

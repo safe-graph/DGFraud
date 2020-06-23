@@ -47,8 +47,8 @@ def arg_parser():
 
     # SemiGNN
     parser.add_argument('--init_emb_size', default=4, help='initial node embedding size')
-    parser.add_argument('--semi_encoding1', default=3, help='node attention layer units')
-    parser.add_argument('--semi_encoding2', default=2, help='view attention layer units')
+    parser.add_argument('--semi_encoding1', default=3, help='the first view attention layer unit number')
+    parser.add_argument('--semi_encoding2', default=2, help='the second view attention layer unit number')
     parser.add_argument('--semi_encoding3', default=4, help='one-layer perceptron units')
     parser.add_argument('--Ul', default=8, help='labeled users number')
     parser.add_argument('--alpha', default=0.5, help='loss alpha')
@@ -93,7 +93,17 @@ def load_data(args):
         class_size = train_label.shape[1]
         train_size = len(train_data)
         paras = [node_size, node_embedding, class_size, train_size]
-    if args.dataset_str == 'example':
+    if args.dataset_str == 'example' and args.model != 'GAS':
+        if args.model == 'GEM':
+            adj_list, features, train_data, train_label, test_data, test_label = load_example_gem()
+        if args.model == 'SemiGNN':
+            adj_list, features, train_data, train_label, test_data, test_label = load_example_semi()
+        node_size = features.shape[0]
+        node_embedding = features.shape[1]
+        class_size = train_label.shape[1]
+        train_size = len(train_data)
+        paras = [node_size, node_embedding, class_size, train_size]
+    if args.dataset_str == 'example' and args.model == 'GAS':
         adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
         node_embedding_r = features[0].shape[1]
         node_embedding_u = features[1].shape[1]

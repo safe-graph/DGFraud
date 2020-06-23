@@ -3,7 +3,7 @@
 
 ## Paper
 The FdGars model is proposed by the [paper](https://dl.acm.org/citation.cfm?id=3316586) below:
-```
+```bibtex
 @inproceedings{wang2019fdgars,
   title={Fdgars: Fraudster detection via graph convolutional networks in online app review system},
   author={Wang, Jianyu and Wen, Rui and Wu, Chunming and Huang, Yu and Xion, Jian},

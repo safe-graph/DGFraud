@@ -35,9 +35,9 @@ def construct_feed_dict_semi(a, u_i, u_j, batch_graph_label, batch_data, batch_s
     feed_dict.update({placeholders['a']: a})
     feed_dict.update({placeholders['u_i']: u_i})
     feed_dict.update({placeholders['u_j']: u_j})
-    feed_dict.update({placeholders['graph_t']: batch_graph_label})
+    feed_dict.update({placeholders['graph_label']: batch_graph_label})
     feed_dict.update({placeholders['batch_index']: batch_data})
-    feed_dict.update({placeholders['sup_t']: batch_sup_label})
+    feed_dict.update({placeholders['sup_label']: batch_sup_label})
     feed_dict.update({placeholders['lr']: learning_rate})
     feed_dict.update({placeholders['mom']: momentum})
     return feed_dict

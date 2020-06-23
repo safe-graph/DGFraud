@@ -197,34 +197,48 @@ class AttentionLayer(Layer):
         else:
             return output, weights
 
-    # node-level attention (equation (1) in SemiGNN)
-    def node_attention(inputs, encoding, return_weights=False):
+    def node_attention(inputs, adj, return_weights=False):
         hidden_size = inputs.shape[-1].value
-        w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))
+        H_v = tf.Variable(tf.random_normal([hidden_size, 1], stddev=0.1))
+
+        # convert adj to sparse tensor
+        zero = tf.constant(0, dtype=tf.float32)
+        where = tf.not_equal(adj, zero)
+        indices = tf.where(where)
+        values = tf.gather_nd(adj, indices)
+        adj = tf.SparseTensor(indices=indices,
+                              values=values,
+                              dense_shape=adj.shape)
 
         with tf.name_scope('v'):
-            v = tf.tensordot(inputs, w_omega, axes=1)
+            v = adj * tf.squeeze(tf.tensordot(inputs, H_v, axes=1))
 
-        weights = tf.nn.softmax(v, name='alphas')
-        output = tf.reduce_sum(v * weights, 1)
+        weights = tf.sparse_softmax(v, name='alphas')  # [nodes,nodes]
+        output = tf.sparse_tensor_dense_matmul(weights, inputs)
+
         if not return_weights:
             return output
         else:
             return output, weights
 
     # view-level attention (equation (4) in SemiGNN)
-    def view_attention(inputs, encoding, meta, return_weights=False):
-        hidden_size = inputs.shape[-1].value
-        w_omega = tf.Variable(tf.random_normal([hidden_size, encoding], stddev=0.1))  # encoding =4 OOM
-        b_omega = tf.Variable(tf.random_normal([encoding], stddev=0.1))
+    def view_attention(inputs, encoding1, encoding2, layer_size, meta, return_weights=False):
+        h = inputs
+        encoding = [encoding1, encoding2]
+        for l in range(layer_size):
+            v = []
+            for i in range(meta):
+                input = h[i]
+                v_i = tf.layers.dense(inputs=input, units=encoding[l], activation=tf.nn.relu)
+                v.append(v_i)
+            h = v
 
-        with tf.name_scope('v'):
-            v = tf.tensordot(inputs, w_omega, axes=1)
-            v += b_omega
-            v = tf.nn.relu(v)
+        h = tf.concat(h, 0)
+        h = tf.reshape(h, [meta, inputs[0].shape[0].value, encoding2])
+        phi = tf.Variable(tf.random_normal([encoding2, ], stddev=0.1))
+        weights = tf.nn.softmax(h * phi, name='alphas')
+        output = tf.reshape(h * weights, [1, inputs[0].shape[0] * encoding2 * meta])
 
-        weights = tf.nn.softmax(v, name='alphas')
-        output = tf.reshape(v * weights, [1, encoding * meta])
         if not return_weights:
             return output
         else:
@@ -279,14 +293,13 @@ class ConcatenationAggregator(Layer):
         self.output_dim = output_dim
 
     def _call(self, inputs):
-
         review_vecs = tf.nn.dropout(self.review_vecs, 1 - self.dropout)
         user_vecs = tf.nn.dropout(self.user_vecs, 1 - self.dropout)
         item_vecs = tf.nn.dropout(self.item_vecs, 1 - self.dropout)
 
         # neighbor sample
         ri = tf.nn.embedding_lookup(item_vecs,
-                                    tf.cast(self.review_item_adj, dtype=tf.int32))  # input is int, why need cast?
+                                    tf.cast(self.review_item_adj, dtype=tf.int32))
         ri = tf.transpose(tf.random_shuffle(tf.transpose(ri)))
 
         ru = tf.nn.embedding_lookup(user_vecs, tf.cast(self.review_user_adj, dtype=tf.int32))
@@ -538,11 +551,11 @@ class GAT(Layer):
             # residual connection
             if residual:
                 if seq.shape[-1] != ret.shape[-1]:
-                    ret = ret + conv1d(seq, ret.shape[-1], 1)  # activation
+                    ret = ret + conv1d(seq, ret.shape[-1], 1)
                 else:
                     ret = ret + seq
 
-            return activation(ret)  # activation
+            return activation(ret)
 
     def inference(self, inputs):
         out = []
@@ -593,8 +606,8 @@ class GeniePathLayer(Layer):
         x = x[0]
         return x, (h, c)
 
-    def lazy_forward(self, x, bias_in, h, c):
-        x = self.breadth_forward(x, bias_in)
-        x, (h, c) = self.depth_forward(x, h, c)
-        x = x[0]
-        return x, (h, c)
+    # def lazy_forward(self, x, bias_in, h, c):
+    #     x = self.breadth_forward(x, bias_in)
+    #     x, (h, c) = self.depth_forward(x, h, c)
+    #     x = x[0]
+    #     return x, (h, c)

@@ -3,7 +3,7 @@
 
 ## Paper
 The SemiGNN model is proposed by the [paper](https://ieeexplore.ieee.org/abstract/document/8970829) below:
-```
+```bibtex
 @inproceedings{wang2019semi,
   title={A Semi-supervised Graph Attentive Network for Financial Fraud Detection},
   author={Wang, Daixin and Lin, Jianbin and Cui, Peng and Jia, Quanhui and Wang, Zhen and Fang, Yanming and Yu, Quan and Zhou, Jun and Yang, Shuang and Qi, Yuan},
