@@ -24,7 +24,8 @@
 <p>A Deep Graph-based Toolbox for Fraud Detection
 </h3>
 
-Introduction: **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also includes several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
+**Introduction** 
+**DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also includes several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
@@ -85,15 +86,15 @@ We implement example graphs for SemiGNN, GAS and GEM in `data_loader.py`. Becaus
 
 
 #### Yelp dataset
-For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges. There are two kinds of node features, the 100-dimension Bag-of-words fearture and 32-dimension handcrafted feature from [SpEagle paper](https://www.andrew.cmu.edu/user/lakoglu/pubs/15-kdd-collectiveopinionspam.pdf).
+For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges. There are two kinds of node features, the 100-dimension Bag-of-words feature and 32-dimension handcrafted feature from [SpEagle paper](https://www.andrew.cmu.edu/user/lakoglu/pubs/15-kdd-collectiveopinionspam.pdf).
 
 The dataset is located at `/dataset/YelpChi.zip`. It is organized as follows:
 - `adj_lists.pickle` contains a list `[rur, rtr, rsr]` which includes adjacency lists of three homo-graphs defined in [GraphConsis](https://arxiv.org/abs/2005.00625) paper;
 - `bow_feature.pickle` contains the Bag-of-words features in `scipy.sparse.coo_matrix` format;
 - `hand_feature.pickle` contains the handcrafted features in `scipy.sparse.coo_matrix` format;
-- `labels.pickle` contains the ground truth of reviews in `numpy.array` format. 1 represents spam and 0 represents benign review.
+- `labels.pickle` contains the ground truth of reviews in `numpy.array` format. `1` represents spam and `0` represents benign.
 
-To get the complete metadata of Yelp dataset, please send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
+To get the complete metadata of the Yelp dataset, please send an email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
 
 ## User Guide
 
@@ -155,6 +156,7 @@ The repository is organized as follows:
 <!--| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |-->
 
 ## TODO List
+- Integrating the Yelp dataset with multiple models
 - GraphConsis Implementation
 - Implementing mini-batch training
 - The log loss for GEM model
@@ -166,5 +168,5 @@ The repository is organized as follows:
 - Pytorch version
 
 ## How to Contribute
-You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for enquiry.
+You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
 
