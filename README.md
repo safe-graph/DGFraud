@@ -88,13 +88,12 @@ We implement example graphs for SemiGNN, GAS and GEM in `data_loader.py`. Becaus
 
 
 ### Yelp dataset
-For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges. There are two kinds of node features, the 100-dimension Bag-of-words feature and 32-dimension handcrafted feature from [SpEagle paper](https://www.andrew.cmu.edu/user/lakoglu/pubs/15-kdd-collectiveopinionspam.pdf).
+For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam Review Dataset](http://odds.cs.stonybrook.edu/yelpchi-dataset/) with reviews as nodes and three relations as edges.
 
-The dataset is located at `/dataset/YelpChi.zip`. It is organized as follows:
-- `adj_lists.pickle` contains a list `[rur, rtr, rsr]` which includes adjacency lists of three homo-graphs defined in [GraphConsis](https://arxiv.org/abs/2005.00625) paper;
-- `bow_feature.pickle` contains the Bag-of-words features in `scipy.sparse.coo_matrix` format;
-- `hand_feature.pickle` contains the handcrafted features in `scipy.sparse.coo_matrix` format;
-- `labels.pickle` contains the ground truth of reviews in `numpy.array` format. `1` represents spam and `0` represents benign.
+The dataset with `.mat` format is located at `/dataset/YelpChi.zip`. The `.mat` file includes:
+- `net_rur, net_rtr, net_rsr`: three sparse matrices representing three homo-graphs defined in [GraphConsis](https://arxiv.org/abs/2005.00625) paper;
+- `features`: a sparse matrix of 100-dimension Bag-of-words features;
+- `label`: a numpy array with the ground truth of nodes. `1` represents spam and `0` represents benign.
 
 To get the complete metadata of the Yelp dataset, please send an email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
 
