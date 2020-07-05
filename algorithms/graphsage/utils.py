@@ -25,7 +25,7 @@ def load_data_dblp(prefix='./example_data/', file_name = 'YelpChi.mat'):
     truelabels = truelabels.tolist()[0]
     features = features.todense()
     N = features.shape[0]
-    rownetworks = [data['net_rur'] - np.eye(N)]
+    rownetworks = [data['net_rur']]
     # rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
     index = range(len(truelabels))
     train_num = int(len(truelabels) * training_size)
