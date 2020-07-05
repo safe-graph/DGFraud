@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from graphconsis.inits import zeros
+from .inits import zeros
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS

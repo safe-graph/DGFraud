@@ -1,8 +1,8 @@
 from __future__ import division
 from __future__ import print_function
 
-from graphconsis.inits import zeros
-from graphconsis.layers import Layer
+from .inits import zeros
+from .layers import Layer
 import tensorflow as tf
 
 flags = tf.app.flags

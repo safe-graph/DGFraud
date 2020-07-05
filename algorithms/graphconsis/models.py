@@ -3,11 +3,12 @@ from collections import namedtuple
 import tensorflow as tf
 import math
 
-import graphconsis.layers as layers
-import graphconsis.metrics as metrics
+import hetegraphconsis.layers as layers
+import hetegraphconsis.metrics as metrics
 
 from .prediction import BipartiteEdgePredLayer
 from .aggregators import MeanAggregator, MaxPoolingAggregator, MeanPoolingAggregator, SeqAggregator, GCNAggregator
+
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -210,14 +211,6 @@ class SampleAndAggregate(GeneralizedModel):
         super(SampleAndAggregate, self).__init__(**kwargs)
         if aggregator_type == "mean":
             self.aggregator_cls = MeanAggregator
-        elif aggregator_type == "seq":
-            self.aggregator_cls = SeqAggregator
-        elif aggregator_type == "maxpool":
-            self.aggregator_cls = MaxPoolingAggregator
-        elif aggregator_type == "meanpool":
-            self.aggregator_cls = MeanPoolingAggregator
-        elif aggregator_type == "gcn":
-            self.aggregator_cls = GCNAggregator
         else:
             raise Exception("Unknown aggregator: ", self.aggregator_cls)
 
@@ -270,10 +263,6 @@ class SampleAndAggregate(GeneralizedModel):
             support_size *= layer_infos[t].num_samples
             sampler = layer_infos[t].neigh_sampler
             batch_sample_size = support_sizes[k] * batch_size
-            # print('!!!!!!!!models number of samples:',t, layer_infos[t].num_samples)
-            # print('!!!!!!!!models feature:', self.features.shape)
-            # print('!!!!!!!!models batch_size:', batch_size, support_size)
-            # print('!!!!!!!!models samples!!:', samples[k].shape)
             node = sampler((samples[k], layer_infos[t].num_samples, self.features, batch_sample_size))
             # node = sampler((samples[k], layer_infos[t].num_samples))
             samples.append(tf.reshape(node, [support_size * batch_size,]))

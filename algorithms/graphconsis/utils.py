@@ -18,66 +18,47 @@ assert (major <= 1) and (minor <= 11), "networkx major version > 1.11"
 WALK_LEN=5  
 N_WALKS=50
 
-def load_mat_full(prefix='./example_data/', file_name = 'YelpChi.mat'):
-    training_size = 0.8
+def load_mat_full(prefix='./example_data/', file_name = 'YelpChi.mat', relations=['net_rur'], train_size=0.8):
     data = sio.loadmat(prefix + file_name)
     truelabels, features = data['label'], data['features'].astype(float)
     truelabels = truelabels.tolist()[0]
     features = features.todense()
     N = features.shape[0]
-    rownetworks = [data['net_rur'] - np.eye(N)]
-    # rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
+    adj_mat = [data[relation] for relation in relations]
     index = range(len(truelabels))
-    train_num = int(len(truelabels) * training_size)
+    train_num = int(len(truelabels) * 0.8)
     train_idx = set(np.random.choice(index, train_num, replace=False))
     test_idx = set(index).difference(train_idx)
-    # X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
-    #                                                     shuffle=True)
-    return rownetworks, features, truelabels, train_idx, test_idx
+    train_num = int(len(truelabels) * 0.8)
+    train_idx = set(list(train_idx[:train_num]))
+    return adj_mat, features, truelabels, train_idx, test_idx
 
-def load_mat_partial(prefix='./example_data/', file_name = 'YelpChi.mat', partial=100):
-    training_size = 0.8
-    data = sio.loadmat(prefix + file_name)
-    truelabels, features = data['label'], data['features'].astype(float)
-    truelabels = truelabels.tolist()[0][:partial]
-    features = features.todense()[:partial,:]
-    N = features.shape[0]
-    rownetworks = [(data['net_rur'] - np.eye(N))[:partial,:partial]]
-    # rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
-    index = range(len(truelabels))
-    train_num = int(len(truelabels) * training_size)
-    train_idx = set(np.random.choice(index, train_num, replace=False))
-    test_idx = set(index).difference(train_idx)
-    # X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
-    #                                                     shuffle=True)
-    return rownetworks, features, truelabels, train_idx, test_idx
+def graph_process(graph, features, truelabels, test_idx):
+    print('-------processing graph-------------')
+    for node in graph.nodes():
+        graph.node[node]['feature'] = features[node,:].tolist()[0]
+        graph.node[node]['label'] = [truelabels[node]]
+        if node in test_idx:
+            graph.node[node]['test'] = True
+            graph.node[node]['val'] = True
+        else:
+            graph.node[node]['test'] = False
+            graph.node[node]['val'] = False
+    broken_count = 0
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]['train_removed'] = False
+    return graph
 
-def load_data(prefix='./example_data/', file_name = 'YelpChi.mat', normalize=True, load_walks=False):
-    adjs, feats, truelabels, train_idx, test_idx = load_mat_full(prefix, file_name)
+def load_data(prefix='./example_data/', file_name = 'YelpChi.mat', relations=['net_rur'], normalize=True, load_walks=False, train_size=0.8):
+    adjs, feats, truelabels, train_idx, test_idx = load_mat_full(prefix, file_name, relations)
     gs = [nx.to_networkx_graph(adj) for adj in adjs]
     id_map = {int(i):i for i in range(len(truelabels))}
     class_map = {int(i):truelabels[i] for i in range(len(truelabels))}
     walks = []
-    G = gs[0] # change the index to specify which adj matrix to use for aggregation
-    for node in G.nodes():
-        G.node[node]['feature'] = feats[node,:].tolist()[0]
-        G.node[node]['label'] = [truelabels[node]]
-        if node in train_idx:
-            G.node[node]['test'] = False
-            G.node[node]['val'] = False
-        else:
-            G.node[node]['test'] = True
-            G.node[node]['val'] = True
-    broken_count = 0
-    for node in G.nodes():
-        if not 'val' in G.node[node] or not 'test' in G.node[node]:
-            G.remove_node(node)
-            broken_count += 1
-    print("Removed {:d} nodes that lacked proper annotations due to networkx versioning issues".format(broken_count))
-    print("Loaded data.. now preprocessing..")
-    for edge in G.edges():
-        G[edge[0]][edge[1]]['train_removed'] = False
-
+    adj_main = np.sum(adjs) # change the index to specify which adj matrix to use for aggregation
+    G = nx.to_networkx_graph(adj_main)
+    gs = [graph_process(g, feats, truelabels, test_idx) for g in gs]
+    G = graph_process(G, feats, truelabels, test_idx)
     if normalize and not feats is None:
         from sklearn.preprocessing import StandardScaler
         train_ids = np.array([id_map[n] for n in G.nodes()])
@@ -85,73 +66,11 @@ def load_data(prefix='./example_data/', file_name = 'YelpChi.mat', normalize=Tru
         scaler = StandardScaler()
         scaler.fit(train_feats)
         feats = scaler.transform(feats)
-    
     if load_walks:
         with open(prefix + "-walks.txt") as fp:
             for line in fp:
                 walks.append(map(conversion, line.split()))
-
-    return G, feats, id_map, walks, class_map
-
-
-
-def load_data_ori(prefix, normalize=True, load_walks=False):
-    G_data = json.load(open(prefix + "-G.json"))
-    G = json_graph.node_link_graph(G_data)
-    if isinstance(G.nodes()[0], int):
-        conversion = lambda n : int(n)
-    else:
-        conversion = lambda n : n
-
-    if os.path.exists(prefix + "-feats.npy"):
-        feats = np.load(prefix + "-feats.npy")
-    else:
-        print("No features present.. Only identity features will be used.")
-        feats = None
-    id_map = json.load(open(prefix + "-id_map.json"))
-    id_map = {conversion(k):int(v) for k,v in id_map.items()}
-    walks = []
-    class_map = json.load(open(prefix + "-class_map.json"))
-    if isinstance(list(class_map.values())[0], list):
-        lab_conversion = lambda n : n
-    else:
-        lab_conversion = lambda n : int(n)
-
-    class_map = {conversion(k):lab_conversion(v) for k,v in class_map.items()}
-
-    ## Remove all nodes that do not have val/test annotations
-    ## (necessary because of networkx weirdness with the Reddit data)
-    broken_count = 0
-    for node in G.nodes():
-        if not 'val' in G.node[node] or not 'test' in G.node[node]:
-            G.remove_node(node)
-            broken_count += 1
-    print("Removed {:d} nodes that lacked proper annotations due to networkx versioning issues".format(broken_count))
-
-    ## Make sure the graph has edge train_removed annotations
-    ## (some datasets might already have this..)
-    print("Loaded data.. now preprocessing..")
-    for edge in G.edges():
-        if (G.node[edge[0]]['val'] or G.node[edge[1]]['val'] or
-            G.node[edge[0]]['test'] or G.node[edge[1]]['test']):
-            G[edge[0]][edge[1]]['train_removed'] = True
-        else:
-            G[edge[0]][edge[1]]['train_removed'] = False
-
-    if normalize and not feats is None:
-        from sklearn.preprocessing import StandardScaler
-        train_ids = np.array([id_map[n] for n in G.nodes() if not G.node[n]['val'] and not G.node[n]['test']])
-        train_feats = feats[train_ids]
-        scaler = StandardScaler()
-        scaler.fit(train_feats)
-        feats = scaler.transform(feats)
-    
-    if load_walks:
-        with open(prefix + "-walks.txt") as fp:
-            for line in fp:
-                walks.append(map(conversion, line.split()))
-
-    return G, feats, id_map, walks, class_map
+    return G, feats, id_map, walks, class_map, gs
 
 def run_random_walks(G, nodes, num_walks=N_WALKS):
     pairs = []

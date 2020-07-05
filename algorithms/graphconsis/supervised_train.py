@@ -8,13 +8,11 @@ import numpy as np
 import sklearn
 from sklearn import metrics
 
-from graphconsis.supervised_models import SupervisedGraphsage
-from graphconsis.models import SAGEInfo
-from graphconsis.minibatch import NodeMinibatchIterator
-from graphconsis.neigh_samplers import UniformNeighborSampler, DistanceNeighborSampler
-from graphconsis.utils import load_data
-
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+from .supervised_models import SupervisedGraphconsis
+from .models import SAGEInfo
+from .minibatch import NodeMinibatchIterator
+from .neigh_samplers import UniformNeighborSampler, DistanceNeighborSampler
+from .utils import load_data
 
 # Set random seed
 seed = 123
@@ -32,6 +30,7 @@ flags.DEFINE_string('model', 'graphsage_mean', 'model names. See README for poss
 flags.DEFINE_float('learning_rate', 0.01, 'initial learning rate.')
 flags.DEFINE_string("model_size", "small", "Can be big or small; model specific def'ns")
 flags.DEFINE_string('train_prefix', '', 'prefix identifying training data. must be specified.')
+flags.DEFINE_string('file_name', 'YelpChi.mat', 'file name for opening the .mat file')
 
 # left to default values in main experiments 
 flags.DEFINE_integer('epochs', 10, 'number of epochs to train.')
@@ -46,7 +45,7 @@ flags.DEFINE_integer('dim_2', 128, 'Size of output dim (final is 2x this, if usi
 flags.DEFINE_boolean('random_context', True, 'Whether to use random context or direct edges')
 flags.DEFINE_integer('batch_size', 512, 'minibatch size.')
 flags.DEFINE_boolean('sigmoid', False, 'whether to use sigmoid loss')
-flags.DEFINE_integer('identity_dim', 0, 'Set to positive value to use identity embedding features of that dimension. Default 0.')
+flags.DEFINE_integer('context_dim', 0, 'Set to positive value to use context embedding features of that dimension. Default 0.')
 
 #logging, saving, validation settings etc.
 flags.DEFINE_string('base_log_dir', '.', 'base directory for logging and saving embeddings')
@@ -69,6 +68,9 @@ def calc_f1(y_true, y_pred):
         y_pred[y_pred <= 0.5] = 0
     return metrics.f1_score(y_true, y_pred, average="micro"), metrics.f1_score(y_true, y_pred, average="macro")
 
+def calc_auc(y_true, y_pred):
+    return metrics.roc_auc_score(y_true, y_pred)
+
 # Define model evaluation function
 def evaluate(sess, model, minibatch_iter, size=None):
     t_test = time.time()
@@ -76,7 +78,8 @@ def evaluate(sess, model, minibatch_iter, size=None):
     node_outs_val = sess.run([model.preds, model.loss], 
                         feed_dict=feed_dict_val)
     mic, mac = calc_f1(labels, node_outs_val[0])
-    return node_outs_val[1], mic, mac, (time.time() - t_test)
+    auc = calc_auc(labels, node_outs_val[0])
+    return node_outs_val[1], mic, mac, auc, (time.time() - t_test)
 
 def log_dir():
     log_dir = FLAGS.base_log_dir + "/sup-" + FLAGS.train_prefix.split("/")[-2]
@@ -107,7 +110,8 @@ def incremental_evaluate(sess, model, minibatch_iter, size, test=False):
     val_preds = np.vstack(val_preds)
     labels = np.vstack(labels)
     f1_scores = calc_f1(labels, val_preds)
-    return np.mean(val_losses), f1_scores[0], f1_scores[1], (time.time() - t_test)
+    auc_score = calc_auc(labels, val_preds)
+    return np.mean(val_losses), f1_scores[0], f1_scores[1], auc_score, (time.time() - t_test)
 
 def construct_placeholders(num_classes):
     # Define placeholders
@@ -125,6 +129,8 @@ def train(train_data, test_data=None):
     features = train_data[1]
     id_map = train_data[2]
     class_map  = train_data[4]
+    gs = train_data[5]
+    num_relations = len(gs)
     if isinstance(list(class_map.values())[0], list):
         num_classes = len(list(class_map.values())[0])
     else:
@@ -136,7 +142,15 @@ def train(train_data, test_data=None):
 
     context_pairs = train_data[3] if FLAGS.random_context else None
     placeholders = construct_placeholders(num_classes)
-    minibatch = NodeMinibatchIterator(G, 
+    minibatch_list = [NodeMinibatchIterator(g, 
+            id_map,
+            placeholders, 
+            class_map,
+            num_classes,
+            batch_size=FLAGS.batch_size,
+            max_degree=FLAGS.max_degree, 
+            context_pairs = context_pairs) for g in gs]
+    minibatch_main = NodeMinibatchIterator(G, 
             id_map,
             placeholders, 
             class_map,
@@ -144,99 +158,125 @@ def train(train_data, test_data=None):
             batch_size=FLAGS.batch_size,
             max_degree=FLAGS.max_degree, 
             context_pairs = context_pairs)
-    adj_info_ph = tf.placeholder(tf.int32, shape=minibatch.adj.shape)
-    adj_info = tf.Variable(adj_info_ph, trainable=False, name="adj_info")
-    print('****supervised_train****shape of adj_info**********:', adj_info.shape)
+    adj_info_ph_list = [tf.placeholder(tf.int32, shape=minibatch_main.adj.shape) for i in range(num_relations)]
+    adj_info_list = [tf.Variable(adj_info_ph, trainable=False, name="adj_info") for adj_info_ph in adj_info_ph_list]
+    adj_info_main = adj_info_list[0]
+    # print('****supervised_train****shape of adj_info**********:', adj_info.shape)
 
     if FLAGS.model == 'graphsage_mean':
-        # Create model
-        # sampler = UniformNeighborSampler(adj_info)
-        sampler = DistanceNeighborSampler(adj_info)
+        sampler_list = [DistanceNeighborSampler(adj_info) for adj_info in adj_info_list]
         if FLAGS.samples_3 != 0:
-            layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
                                 SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2),
-                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)]
+                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)] for sampler in sampler_list]
         elif FLAGS.samples_2 != 0:
-            layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
-                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)]
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)] for sampler in sampler_list]
         else:
-            layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)]
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)] for sampler in sampler_list]
 
-        model = SupervisedGraphsage(num_classes, placeholders, 
+        model = SupervisedGraphconsis(num_classes, placeholders, 
                                      features,
-                                     adj_info,
-                                     minibatch.deg,
-                                     layer_infos, 
+                                     adj_info_main,
+                                     minibatch_main.deg,
+                                     hete_layer_infos, 
                                      model_size=FLAGS.model_size,
                                      sigmoid_loss = FLAGS.sigmoid,
-                                     identity_dim = FLAGS.identity_dim,
+                                     identity_dim = FLAGS.context_dim, 
+                                     num_re = num_relations,
                                      logging=True)
     elif FLAGS.model == 'gcn':
-        # Create model
-        sampler = UniformNeighborSampler(adj_info)
-        layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, 2*FLAGS.dim_1),
-                            SAGEInfo("node", sampler, FLAGS.samples_2, 2*FLAGS.dim_2)]
+        sampler_list = [DistanceNeighborSampler(adj_info) for adj_info in adj_info_list]
+        if FLAGS.samples_3 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2),
+                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)] for sampler in sampler_list]
+        elif FLAGS.samples_2 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)] for sampler in sampler_list]
+        else:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)] for sampler in sampler_list]
 
-        model = SupervisedGraphsage(num_classes, placeholders, 
+        model = SupervisedGraphconsis(num_classes, placeholders, 
                                      features,
-                                     adj_info,
-                                     minibatch.deg,
-                                     layer_infos=layer_infos, 
+                                     adj_info_main,
+                                     minibatch_main.deg,
+                                     layer_infos=hete_layer_infos, 
                                      aggregator_type="gcn",
                                      model_size=FLAGS.model_size,
                                      concat=False,
                                      sigmoid_loss = FLAGS.sigmoid,
-                                     identity_dim = FLAGS.identity_dim,
+                                     identity_dim = FLAGS.context_dim, num_re=num_relations,
                                      logging=True)
 
     elif FLAGS.model == 'graphsage_seq':
-        sampler = UniformNeighborSampler(adj_info)
-        layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
-                            SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)]
+        sampler_list = [DistanceNeighborSampler(adj_info) for adj_info in adj_info_list]
+        if FLAGS.samples_3 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2),
+                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)] for sampler in sampler_list]
+        elif FLAGS.samples_2 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)] for sampler in sampler_list]
+        else:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)] for sampler in sampler_list]
 
-        model = SupervisedGraphsage(num_classes, placeholders, 
-                                     features,
-                                     adj_info,
-                                     minibatch.deg,
-                                     layer_infos=layer_infos, 
-                                     aggregator_type="seq",
-                                     model_size=FLAGS.model_size,
-                                     sigmoid_loss = FLAGS.sigmoid,
-                                     identity_dim = FLAGS.identity_dim,
-                                     logging=True)
+        model = SupervisedGraphconsis(num_classes, placeholders, 
+                                       features,
+                                       adj_info_main,
+                                       minibatch_main.deg,
+                                       layer_infos=hete_layer_infos, 
+                                       aggregator_type="seq",
+                                       model_size=FLAGS.model_size,
+                                       sigmoid_loss = FLAGS.sigmoid,
+                                       identity_dim = FLAGS.context_dim, num_re=num_relations,
+                                       logging=True)
 
     elif FLAGS.model == 'graphsage_maxpool':
-        sampler = UniformNeighborSampler(adj_info)
-        layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
-                            SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)]
+        sampler_list = [DistanceNeighborSampler(adj_info) for adj_info in adj_info_list]
+        if FLAGS.samples_3 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2),
+                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)] for sampler in sampler_list]
+        elif FLAGS.samples_2 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)] for sampler in sampler_list]
+        else:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)] for sampler in sampler_list]
 
-        model = SupervisedGraphsage(num_classes, placeholders, 
+        model = SupervisedGraphconsis(num_classes, placeholders, 
                                     features,
-                                    adj_info,
-                                    minibatch.deg,
-                                     layer_infos=layer_infos, 
+                                    adj_info_main,
+                                    minibatch_main.deg,
+                                     layer_infos=hete_layer_infos, 
                                      aggregator_type="maxpool",
                                      model_size=FLAGS.model_size,
                                      sigmoid_loss = FLAGS.sigmoid,
-                                     identity_dim = FLAGS.identity_dim,
+                                     identity_dim = FLAGS.context_dim, num_re=num_relations,
                                      logging=True)
 
     elif FLAGS.model == 'graphsage_meanpool':
-        sampler = UniformNeighborSampler(adj_info)
-        layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
-                            SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)]
+        sampler_list = [DistanceNeighborSampler(adj_info) for adj_info in adj_info_list]
+        if FLAGS.samples_3 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2),
+                                SAGEInfo("node", sampler, FLAGS.samples_3, FLAGS.dim_2)] for sampler in sampler_list]
+        elif FLAGS.samples_2 != 0:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1),
+                                SAGEInfo("node", sampler, FLAGS.samples_2, FLAGS.dim_2)] for sampler in sampler_list]
+        else:
+            hete_layer_infos = [[SAGEInfo("node", sampler, FLAGS.samples_1, FLAGS.dim_1)] for sampler in sampler_list]
 
-        model = SupervisedGraphsage(num_classes, placeholders, 
+        model = SupervisedGraphconsis(num_classes, placeholders, 
                                     features,
-                                    adj_info,
-                                    minibatch.deg,
-                                     layer_infos=layer_infos, 
+                                    adj_info_main,
+                                    minibatch_main.deg,
+                                     layer_infos=hete_layer_infos, 
                                      aggregator_type="meanpool",
                                      model_size=FLAGS.model_size,
                                      sigmoid_loss = FLAGS.sigmoid,
-                                     identity_dim = FLAGS.identity_dim,
+                                     identity_dim = FLAGS.context_dim, num_re=num_relations,
                                      logging=True)
-
     else:
         raise Exception('Error: model name unrecognized.')
 
@@ -251,7 +291,7 @@ def train(train_data, test_data=None):
     summary_writer = tf.summary.FileWriter(log_dir(), sess.graph)
      
     # Init variables
-    sess.run(tf.global_variables_initializer(), feed_dict={adj_info_ph: minibatch.adj})
+    sess.run(tf.global_variables_initializer(), feed_dict={adj_info_ph_list[i]: minibatch_list[i].adj for i in range(num_relations)})
     
     # Train model
     
@@ -259,17 +299,17 @@ def train(train_data, test_data=None):
     avg_time = 0.0
     epoch_val_costs = []
 
-    train_adj_info = tf.assign(adj_info, minibatch.adj)
-    val_adj_info = tf.assign(adj_info, minibatch.test_adj)
+    # train_adj_info = tf.assign(adj_info, minibatch.adj)
+    # val_adj_info = tf.assign(adj_info, minibatch.test_adj)
     for epoch in range(FLAGS.epochs): 
-        minibatch.shuffle() 
+        minibatch_main.shuffle() 
 
         iter = 0
         print('Epoch: %04d' % (epoch + 1))
         epoch_val_costs.append(0)
-        while not minibatch.end():
+        while not minibatch_main.end():
             # Construct feed dictionary
-            feed_dict, labels = minibatch.next_minibatch_feed_dict()
+            feed_dict, labels = minibatch_main.next_minibatch_feed_dict()
             feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
             t = time.time()
@@ -279,12 +319,14 @@ def train(train_data, test_data=None):
 
             if iter % FLAGS.validate_iter == 0:
                 # Validation
-                sess.run(val_adj_info.op)
+                # sess.run(val_adj_info.op)
                 if FLAGS.validate_batch_size == -1:
-                    val_cost, val_f1_mic, val_f1_mac, duration = incremental_evaluate(sess, model, minibatch, FLAGS.batch_size)
+                    ret = incremental_evaluate(sess, model, minibatch_main, FLAGS.batch_size)
+                    val_cost, val_f1_mic, val_f1_mac, val_auc, duration = ret
                 else:
-                    val_cost, val_f1_mic, val_f1_mac, duration = evaluate(sess, model, minibatch, FLAGS.validate_batch_size)
-                sess.run(train_adj_info.op)
+                    ret = evaluate(sess, model, minibatch_main, FLAGS.validate_batch_size)
+                    val_cost, val_f1_mic, val_f1_mac, val_auc, duration = ret
+                # sess.run(train_adj_info.op)
                 epoch_val_costs[-1] += val_cost
 
             if total_steps % FLAGS.print_every == 0:
@@ -314,28 +356,32 @@ def train(train_data, test_data=None):
                 break
     
     print("Optimization Finished!")
-    sess.run(val_adj_info.op)
-    val_cost, val_f1_mic, val_f1_mac, duration = incremental_evaluate(sess, model, minibatch, FLAGS.batch_size)
+    # sess.run(val_adj_info.op)
+    ret = incremental_evaluate(sess, model, minibatch_main, FLAGS.batch_size)
+    val_cost, val_f1_mic, val_f1_mac, val_auc, duration = ret
     print("Full validation stats:",
                   "loss=", "{:.5f}".format(val_cost),
                   "f1_micro=", "{:.5f}".format(val_f1_mic),
                   "f1_macro=", "{:.5f}".format(val_f1_mac),
+                  "auc=", "{:.5f}".format(val_auc),
                   "time=", "{:.5f}".format(duration))
     with open(log_dir() + "val_stats.txt", "w") as fp:
-        fp.write("loss={:.5f} f1_micro={:.5f} f1_macro={:.5f} time={:.5f}".
-                format(val_cost, val_f1_mic, val_f1_mac, duration))
+        fp.write("loss={:.5f} f1_micro={:.5f} f1_macro={:.5f} auc={:.5f} time={:.5f}".
+                format(val_cost, val_f1_mic, val_f1_mac, val_auc, duration))
 
     print("Writing test set stats to file (don't peak!)")
-    val_cost, val_f1_mic, val_f1_mac, duration = incremental_evaluate(sess, model, minibatch, FLAGS.batch_size, test=True)
+    ret = incremental_evaluate(sess, model, minibatch_main, FLAGS.batch_size, test=True)
+    val_cost, val_f1_mic, val_f1_mac, val_auc, duration = ret
     with open(log_dir() + "test_stats.txt", "w") as fp:
-        fp.write("loss={:.5f} f1_micro={:.5f} f1_macro={:.5f}".
-                format(val_cost, val_f1_mic, val_f1_mac))
+        fp.write("loss={:.5f} f1_micro={:.5f} f1_macro={:.5f} auc={:.5f} time={:.5f}".
+                format(val_cost, val_f1_mic, val_f1_mac, val_auc, duration))
 
 def main(argv=None):
     print("Loading training data..")
     # file_name = 'small_sample.mat'
-    file_name = 'YelpChi.mat'
-    train_data = load_data(FLAGS.train_prefix, file_name)
+    file_name = FLAGS.file_name
+    relations = ['net_rur', 'net_rtr', 'net_rsr']
+    train_data = load_data(FLAGS.train_prefix, file_name, relations)
     print("Done loading training data..")
     train(train_data)
 
