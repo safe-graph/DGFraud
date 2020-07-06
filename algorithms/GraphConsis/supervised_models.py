@@ -1,7 +1,4 @@
 import tensorflow as tf
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '..')))
 import models as models
 import layers as layers
 from aggregators import MeanAggregator, MaxPoolingAggregator, MeanPoolingAggregator, SeqAggregator, GCNAggregator

@@ -71,6 +71,7 @@ python setup.py install
 * tensorflow>=1.14.0,<2.0
 * numpy>=1.16.4
 * scipy>=1.2.0
+networkx<=1.11
 ```
 ## Datasets
 

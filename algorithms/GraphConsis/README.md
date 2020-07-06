@@ -15,17 +15,22 @@ The GraphConsis model is proposed by the [paper](https://arxiv.org/abs/2005.0062
 
 ## Brief Introduction
 
-This is the code for our graphconsis mode. It is revised based on the [graphsage](https://github.com/williamleif/GraphSAGE/tree/master/graphsage) model. We support multiple relations and distance sampling as mentioned in [our paper](https://arxiv.org/pdf/2005.00625.pdf).
+It is revised based on the [GraphSage](https://github.com/williamleif/GraphSAGE/tree/master/graphsage) model. We support multiple relations and distance sampling as mentioned in [our paper](https://arxiv.org/pdf/2005.00625.pdf).
 
 
 ## Run the code
-`python -m GraphConsis.supervised_train --train_prefix ../../dataset --file_name YelpChi.mat --model graphsage_mean --sigmoid True --epochs 3 --samples_1 10 -samples_2 5 --context_dim 128 --gpu 1`
+Go to `algorithms/GraphConsis/`, and run the following command in the terminal:
+
+`python -m supervised_train --train_prefix ../../dataset/ --file_name YelpChi.mat --model graphsage_mean --sigmoid True --epochs 3 --samples_1 10 -samples_2 5 --context_dim 128 --train_perc 1. --gpu 1`
+
+or run `supervised_train.py` in your IDEs.
 
 
 ## Meaning of the arguments
 ```
 --samples_1 -samples_2: the number of samples using at difference layers
 --context_dim: the dimension of context embeddings
+--train_perc: the percentage of training data used to train the model, 1. represents using 80% training and 20% testing, 0.5 will use 40% as training and the same 20% as testing
 ```
 For more information about the arguments, please refer to `supervised_train.py`.
 
