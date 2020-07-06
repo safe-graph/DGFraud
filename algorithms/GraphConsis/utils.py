@@ -29,7 +29,7 @@ def load_mat_full(prefix='./example_data/', file_name = 'YelpChi.mat', relations
     train_num = int(len(truelabels) * 0.8)
     train_idx = set(np.random.choice(index, train_num, replace=False))
     test_idx = set(index).difference(train_idx)
-    train_num = int(len(truelabels) * 0.8)
+    train_num = int(len(truelabels) * train_size)
     train_idx = set(list(train_idx)[:train_num])
     return adj_mat, features, truelabels, train_idx, test_idx
 
@@ -50,7 +50,7 @@ def graph_process(graph, features, truelabels, test_idx):
     return graph
 
 def load_data(prefix='./example_data/', file_name = 'YelpChi.mat', relations=['net_rur'], normalize=True, load_walks=False, train_size=0.8):
-    adjs, feats, truelabels, train_idx, test_idx = load_mat_full(prefix, file_name, relations)
+    adjs, feats, truelabels, train_idx, test_idx = load_mat_full(prefix, file_name, relations, train_size)
     gs = [nx.to_networkx_graph(adj) for adj in adjs]
     id_map = {int(i):i for i in range(len(truelabels))}
     class_map = {int(i):truelabels[i] for i in range(len(truelabels))}
