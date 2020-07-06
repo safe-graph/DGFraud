@@ -30,6 +30,7 @@ flags.DEFINE_float('learning_rate', 0.01, 'initial learning rate.')
 flags.DEFINE_string("model_size", "small", "Can be big or small; model specific def'ns")
 flags.DEFINE_string('train_prefix', '../../dataset/', 'prefix identifying training data. must be specified.')
 flags.DEFINE_string('file_name', 'YelpChi.mat', 'file name for opening the .mat file')
+flags.DEFINE_float('train_perc', 1. , 'how many percentages of training data used for the model')
 
 # left to default values in main experiments 
 flags.DEFINE_integer('epochs', 10, 'number of epochs to train.')
@@ -379,8 +380,9 @@ def main(argv=None):
     print("Loading training data..")
     # file_name = 'small_sample.mat'
     file_name = FLAGS.file_name
+    train_perc = FLAGS.train_perc
     relations = ['net_rur', 'net_rtr', 'net_rsr']
-    train_data = load_data(FLAGS.train_prefix, file_name, relations)
+    train_data = load_data(FLAGS.train_prefix, file_name, relations, train_perc)
     print("Done loading training data..")
     train(train_data)
 
