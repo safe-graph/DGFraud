@@ -142,8 +142,10 @@ The repository is organized as follows:
 | **FdGars** | [FdGars: Fraudster Detection via Graph Convolutional Networks in Online App Review System](https://dl.acm.org/citation.cfm?id=3316586)  | WWW 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/fdgars.txt) |
 | **GeniePath** | [GeniePath: Graph Neural Networks with Adaptive Receptive Paths](https://arxiv.org/abs/1802.00910)  | AAAI 2019 | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/geniepath.txt)  |
 | **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://arxiv.org/pdf/2002.12307.pdf)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
+| **GraphSAGE** | [Inductive Representation Learning on Large Graphs](https://arxiv.org/pdf/1706.02216.pdf)  | NIPS 2017  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphsage.txt) |
+| **GraphConsis** | [Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection](https://arxiv.org/pdf/2005.00625.pdf)  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
 <!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
-<!--| **GraphConsis** | Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |-->
+
 
 ## Model Comparison
 | Model  | Application  | Graph Type  | Base Model  |
@@ -154,8 +156,10 @@ The repository is organized as follows:
 | **FdGars** |  Opinion Fraud | Homogeneous | GCN |
 | **GeniePath** | Financial Fraud | Homogeneous | GAT  |
 | **GEM** | Financial Fraud  | Heterogeneous |GCN |
+| **GraphSAGE** | Opinion Fraud  | Homogeneous   | GraphSAGE |
+| **GraphConsis** | Opinion Fraud  | Heterogeneous   | GraphSAGE |
 <!--| **HACUD** |  |  |   |-->
-<!--| **GraphConsis** | Opinion Fraud  | Homogeneous   | GraphSAGE |-->
+
 
 ## TODO List
 - Integrating the Yelp dataset with multiple models
