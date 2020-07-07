@@ -163,7 +163,6 @@ The repository is organized as follows:
 
 ## TODO List
 - Integrating the Yelp dataset with multiple models
-- GraphConsis Implementation
 - Implementing mini-batch training
 - The log loss for GEM model
 - Time-based sampling for GEM
