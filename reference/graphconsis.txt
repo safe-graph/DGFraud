@@ -1,0 +1,6 @@
+@inproceedings{liu2020alleviating,
+  title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
+  author={Liu, Zhiwei and Dou, Yingtong and Yu, Philip S. and Deng, Yutong and Peng, Hao},
+  booktitle={Proceedings of the 43nd International ACM SIGIR Conference on Research and Development in Information Retrieval},
+  year={2020}
+}
