@@ -14,26 +14,16 @@ class Model(object):
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
         self.n_nodes = data_config['n_nodes']
         self.n_metapath = data_config['n_metapath']
-<<<<<<< HEAD
         self.n_class = data_config['n_class']
-=======
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
         
         self.n_fold = args.n_fold
         self.n_fc = args.n_fc
         self.fc = eval(args.fc)
         self.reg = args.reg
-<<<<<<< HEAD
         
     
         self.norm_adj = data_config['norm_adj']
         
-=======
-        
-        for n in range(self.n_metapath):
-            self.norm_adj = data_config['norm_adj']
-        
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
         self.features = data_config['features']
         self.f_dim = self.features.shape[1]
         self.lr = args.lr
@@ -65,12 +55,7 @@ class Model(object):
         '''
         self.batch_embeddings = tf.nn.embedding_lookup(self.n_embeddings, self.nodes)
 
-<<<<<<< HEAD
         self.label = tf.placeholder(tf.float32, shape=(None, self.n_class))
-=======
-        self.label = tf.placeholder(tf.float32, shape=(None,))
-        self.label = tf.expand_dims(self.label,-1)
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
         self.loss = self.create_loss(self.batch_embeddings, self.label)
         
@@ -229,40 +214,26 @@ class Model(object):
         return ce_loss
 
     def create_reg_loss(self):
-<<<<<<< HEAD
         
         # for key in self.weights.keys(): 
         #     reg_loss += tf.contrib.layers.l2_regularizer(0.5)(self.weights[key])
         # regularizer = tf.contrib.layers.l2_regularizer(0.5)
         # reg_loss += tf.contrib.layers.apply_regularization(regularizer)
         reg_loss = tf.add_n([tf.nn.l2_loss(tf.cast(v, tf.float32)) for v in tf.trainable_variables()])
-=======
-        reg_loss = 0 
-        regularizer = tf.contrib.layers.l2_regularizer(1.0)
-        reg_loss += tf.contrib.layers.apply_regularization(regularizer)
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
         return reg_loss
 
     def create_loss(self, x, y):
-<<<<<<< HEAD
         self.ce_loss = self.create_ce_loss(x,y)
         self.reg_loss = self.create_reg_loss()
 
         loss = self.ce_loss + self.reg * self.reg_loss
-=======
-        ce_loss = self.create_ce_loss(x,y)
-        reg_loss = self.create_reg_loss()
-
-        loss = ce_loss + self.reg * reg_loss
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
         return loss
 
     def _convert_sp_mat_to_sp_tensor(self, X):
         coo = X.tocoo().astype(np.float32)
         indices = np.mat([coo.row, coo.col]).transpose()
-<<<<<<< HEAD
         return tf.SparseTensor(indices, coo.data, coo.shape)
 
     def train(self, sess, nodes, labels):
@@ -274,6 +245,3 @@ class Model(object):
         batch_loss, batch_ce_loss, batch_reg_loss = sess.run([self.loss, self.ce_loss, self.reg_loss],
                             feed_dict={self.nodes: nodes, self.label: labels})
         return batch_loss, batch_ce_loss, batch_reg_loss
-=======
-        return tf.SparseTensor(indices, coo.data, coo.shape)
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298

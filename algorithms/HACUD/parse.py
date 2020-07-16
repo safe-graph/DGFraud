@@ -25,7 +25,6 @@ def parse_args():
                         help='number of fold.')
     parser.add_argument('--n_fc', type=int, default=4,
                         help='number of fully-connected layers.')
-<<<<<<< HEAD
     parser.add_argument('--fc', nargs='?', default='[32,16,8,4]',
                         help='Output sizes of every layer')
 
@@ -33,16 +32,6 @@ def parse_args():
     parser.add_argument('--lr', type=float, default=0.001,
                         help='Learning rate.')
     parser.add_argument('--reg', type=float, default=1e-3,
-=======
-    parser.add_argument('--fc', nargs='?', default='[32,16,8,1]',
-                        help='Output sizes of every layer')
-
-    parser.add_argument('--regs', nargs='?', default='[1e-5,1e-5,1e-2]',
-                        help='Regularizations.')
-    parser.add_argument('--lr', type=float, default=0.01,
-                        help='Learning rate.')
-    parser.add_argument('--reg', type=float, default=1e-4,
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
                         help='Regularization ratio.')     
 
     parser.add_argument('--model_type', nargs='?', default='ngcf',
