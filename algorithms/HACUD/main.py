@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd 
 import os
 from time import time
-<<<<<<< HEAD
 import random
 import tensorflow as tf
 import scipy.sparse as sp
@@ -10,16 +9,6 @@ import scipy.sparse as sp
 from parse import parse_args
 from get_data import Data
 from model import Model
-=======
-
-import scipy.sparse as sp
-from helper import *
-
-import utility.metrics as metrics
-from parse import parse_args
-from get_data import Data
-from model import HACUD
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
 if __name__ == '__main__':
     
@@ -31,26 +20,19 @@ if __name__ == '__main__':
         
     data_generator = Data(path=path, save_path = save_path)
     
-<<<<<<< HEAD
     X_train = data_generator.X_train
     X_test = data_generator.X_test
     
     y_train = data_generator.y_train
     y_test = data_generator.y_test
     
-=======
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu) 
     
     config = dict()
     config['n_nodes'] = data_generator.n_nodes
     config['n_metapath'] = data_generator.n_metapath
-<<<<<<< HEAD
     config['n_class'] = y_train.shape[1]
 
-=======
-    
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
     plain_adj, norm_adj, mean_adj = data_generator.get_adj_mat()
     
     features = data_generator.features
@@ -73,17 +55,12 @@ if __name__ == '__main__':
 
     t0 = time()
 
-<<<<<<< HEAD
     # if args.pretrain == 1:
-=======
-    # if args.pretrain == -1:
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
     #     pretrain_data = load_pretrained_data()
     # else:
     #     pretrain_data = None
     pretrain_data = None
     
-<<<<<<< HEAD
     model = Model(data_config=config, pretrain_data=pretrain_data, args = args)
 
 
@@ -135,6 +112,3 @@ if __name__ == '__main__':
 				format(epoch, loss, ce_loss, reg_loss, test_loss)
             
             print(log1)
-=======
-    model = HACUD(data_config=config, pretrain_data=pretrain_data, args = args)
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
