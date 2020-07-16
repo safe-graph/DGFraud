@@ -1,35 +1,46 @@
 import tensorflow as tf
 import os
 import sys
+import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-from utility.helper import *
-from utility.batch_test import *
 
-class HACUD(object):
+class Model(object):
     def __init__(self, data_config, pretrain_data, args):
         self.model_type = 'hacud'
         self.adj_type = args.adj_type
         self.early_stop = args.early_stop
         self.pretrain_data = pretrain_data
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-        self.n_node = data_config['n_node']
+        self.n_nodes = data_config['n_nodes']
+        self.n_metapath = data_config['n_metapath']
+<<<<<<< HEAD
+        self.n_class = data_config['n_class']
+=======
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
+        
         self.n_fold = args.n_fold
         self.n_fc = args.n_fc
-        self.fc = args.fc
+        self.fc = eval(args.fc)
         self.reg = args.reg
-        self.n_metapath = data_config['n_metapath']
-        self.norm_adj = {}
-        for n in range(self.n_metapath):
-            self.norm_adj['%d' %n] = data_config['norm_adj_%d' %n]
+<<<<<<< HEAD
         
+    
+        self.norm_adj = data_config['norm_adj']
+        
+=======
+        
+        for n in range(self.n_metapath):
+            self.norm_adj = data_config['norm_adj']
+        
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
+        self.features = data_config['features']
+        self.f_dim = self.features.shape[1]
         self.lr = args.lr
         
         self.emb_dim = args.embed_size
         self.batch_size = args.batch_size
         
-        self.decay = self.regs[0]
-
         self.verbose = args.verbose
 
         '''
@@ -54,9 +65,14 @@ class HACUD(object):
         '''
         self.batch_embeddings = tf.nn.embedding_lookup(self.n_embeddings, self.nodes)
 
-        self.label = tf.placeholder(tf.int32, shape=(None,))
+<<<<<<< HEAD
+        self.label = tf.placeholder(tf.float32, shape=(None, self.n_class))
+=======
+        self.label = tf.placeholder(tf.float32, shape=(None,))
+        self.label = tf.expand_dims(self.label,-1)
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
-        self.loss = self.create_loss(self.batch_embeddings, loss)
+        self.loss = self.create_loss(self.batch_embeddings, self.label)
         
         self.opt = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.loss)
     
@@ -65,26 +81,17 @@ class HACUD(object):
 
         initializer = tf.contrib.layers.xavier_initializer()
 
-        if self.pretrain_data is None:
-            all_weights['node_embedding'] = tf.Variable(initializer([self.n_nodes, self.emb_dim]), name='node_embedding')
-            print('using xavier initialization')
-        else:
-            all_weights['node_embedding'] = tf.Variable(initial_value=self.pretrain_data['node_embed'], trainable=True,
-                                                        name='node_embedding', dtype=tf.float32)
-            print('using pretrained initialization')
+        print('using xavier initialization')
 
-        self.weight_size_list = [self.emb_dim] + self.weight_size
-
-        tf.add_to_collection(tf.GraphKeys.WEIGHTS, all_weights['node_embedding'])
-
-            
-        
+        self.fc = [self.emb_dim] + self.fc
+    
         all_weights['W'] = tf.Variable(
-                initializer([self.emb_dim, self.emb_dim]), name='W')
+                initializer([self.f_dim, self.emb_dim]), name='W')
         all_weights['b'] = tf.Variable(
                 initializer([1, self.emb_dim]), name='b')
         tf.add_to_collection(tf.GraphKeys.WEIGHTS, all_weights['W'])
         tf.add_to_collection(tf.GraphKeys.WEIGHTS, all_weights['b'])  
+
 
         for n in range(self.n_fc):
             all_weights['W_%d' % n] = tf.Variable(
@@ -96,7 +103,7 @@ class HACUD(object):
 
         for n in range(self.n_metapath):
             all_weights['W_rho_%d' % n] = tf.Variable(
-                initializer([self.emb_dim, self.emb_dim]), name='W_rho_%d' % n)
+                initializer([self.f_dim, self.emb_dim]), name='W_rho_%d' % n)
             all_weights['b_rho_%d' % n] = tf.Variable(
                 initializer([1, self.emb_dim]), name='b_rho_%d' % n)
             all_weights['W_f_%d' % n] = tf.Variable(
@@ -113,7 +120,7 @@ class HACUD(object):
             tf.add_to_collection(tf.GraphKeys.WEIGHTS, all_weights['z_%d' %n])
 
         all_weights['W_f1'] = tf.Variable(
-                initializer([self.emb_dim, self.emb_dim]), name='W_f1')
+                initializer([2*self.emb_dim, self.emb_dim]), name='W_f1')
         all_weights['b_f1'] = tf.Variable(
                 initializer([1, self.emb_dim]), name='b_f1')  
         tf.add_to_collection(tf.GraphKeys.WEIGHTS, all_weights['W_f1'])
@@ -146,8 +153,10 @@ class HACUD(object):
         
         A_fold_hat = {}
         for n in range(self.n_metapath):
-            A_fold_hat['%d' %n] = self._split_A_hat(self.norm_adj['%d' %n])
-        embeddings = self.weights['node_embedding']
+            A_fold_hat['%d' %n] = self._split_A_hat(self.norm_adj[n])
+
+        embeddings = self.features
+        embeddings = embeddings.astype(np.float32)
         
         h = tf.matmul(embeddings, self.weights['W']) + self.weights['b']
         
@@ -160,12 +169,15 @@ class HACUD(object):
         f_tilde = {}
 
         for n in range(self.n_metapath):
+
+            ''' Graph Convolution '''
             embed_u['%d' %n] = [] 
             for f in range(self.n_fold):
                 embed_u['%d' %n].append(tf.sparse_tensor_dense_matmul(A_fold_hat['%d' %n][f], embeddings))
             
             embed_u['%d' %n] = tf.concat(embed_u['%d' %n], 0)
 
+            ''' Feature Fusion '''
             h_u['%d' %n] = tf.matmul(embed_u['%d' %n], self.weights['W_rho_%d' %n]) + self.weights['b_rho_%d' %n]
             f_u['%d' %n] = tf.nn.relu(tf.matmul(tf.concat([h,h_u['%d' %n]],1), self.weights['W_f_%d' %n]) 
                                             + self.weights['b_f_%d' %n])
@@ -174,7 +186,8 @@ class HACUD(object):
                                             + self.weights['b_f1'])
             alp_u['%d' %n] = tf.nn.relu(tf.matmul(v_u['%d' %n], self.weights['W_f2'])
                                             + self.weights['b_f2'])      
-            alp_hat['%d' %n] = tf.nn.softmax(alp_hat, axis = 1)   
+            
+            alp_hat['%d' %n] = tf.nn.softmax(alp_u['%d' %n], axis = 1)   
 
             f_tilde['%d' %n] = tf.multiply(alp_hat['%d' %n], f_u['%d' %n])                                
             
@@ -183,16 +196,18 @@ class HACUD(object):
         f_c = []
         for n in range(self.n_metapath):
             f_c.append(f_tilde['%d' %n])
-        f_c = tf.concat(f_c,0)
+        f_c = tf.concat(f_c,1)
 
         
         for n in range(self.n_metapath):     
             if n == 0:
                 beta = tf.matmul(f_c, tf.transpose(self.weights['z_%d' % n]))
                 f = f_tilde['%d' %n]
+                f = tf.expand_dims(f, -1)
+        
             else:
                 beta = tf.concat([beta, tf.matmul(f_c, tf.transpose(self.weights['z_%d' % n]))], axis = 1)
-                f = tf.concat([f,f_tilde['%d' %n]], axis = 2)
+                f = tf.concat([f,tf.expand_dims(f_tilde['%d' %n],-1)], axis = 2)
         
         beta_u = tf.nn.softmax(beta, axis = 1)
         beta_u = tf.transpose(tf.expand_dims(beta_u, 0),(1,0,2))
@@ -209,21 +224,56 @@ class HACUD(object):
             else:   
                 x = tf.nn.relu(tf.matmul(x, self.weights['W_%d' %n])+ 
                                 self.weights['b_%d' %n])
-        ce_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=x, labels=y),1)
+        ce_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=x, labels=y),0)
 
         return ce_loss
 
     def create_reg_loss(self):
+<<<<<<< HEAD
+        
+        # for key in self.weights.keys(): 
+        #     reg_loss += tf.contrib.layers.l2_regularizer(0.5)(self.weights[key])
+        # regularizer = tf.contrib.layers.l2_regularizer(0.5)
+        # reg_loss += tf.contrib.layers.apply_regularization(regularizer)
+        reg_loss = tf.add_n([tf.nn.l2_loss(tf.cast(v, tf.float32)) for v in tf.trainable_variables()])
+=======
         reg_loss = 0 
-        regularizer = tf.contrib.layers.l2_regularizer(1)
+        regularizer = tf.contrib.layers.l2_regularizer(1.0)
         reg_loss += tf.contrib.layers.apply_regularization(regularizer)
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
         return reg_loss
 
     def create_loss(self, x, y):
-        ce_loss = self.create_ce_loss(x,y)
-        reg_loss = self.create_reg_loss
+<<<<<<< HEAD
+        self.ce_loss = self.create_ce_loss(x,y)
+        self.reg_loss = self.create_reg_loss()
 
-        loss = ce_loss + self.reg*reg_loss
+        loss = self.ce_loss + self.reg * self.reg_loss
+=======
+        ce_loss = self.create_ce_loss(x,y)
+        reg_loss = self.create_reg_loss()
+
+        loss = ce_loss + self.reg * reg_loss
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
 
         return loss
+
+    def _convert_sp_mat_to_sp_tensor(self, X):
+        coo = X.tocoo().astype(np.float32)
+        indices = np.mat([coo.row, coo.col]).transpose()
+<<<<<<< HEAD
+        return tf.SparseTensor(indices, coo.data, coo.shape)
+
+    def train(self, sess, nodes, labels):
+        _, batch_loss, batch_ce_loss, reg_loss = sess.run([self.opt, self.loss, self.ce_loss, self.reg_loss],
+                            feed_dict={self.nodes: nodes, self.label: labels})
+        return batch_loss, batch_ce_loss, reg_loss
+    
+    def eval(self, sess, nodes, labels):
+        batch_loss, batch_ce_loss, batch_reg_loss = sess.run([self.loss, self.ce_loss, self.reg_loss],
+                            feed_dict={self.nodes: nodes, self.label: labels})
+        return batch_loss, batch_ce_loss, batch_reg_loss
+=======
+        return tf.SparseTensor(indices, coo.data, coo.shape)
+>>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
