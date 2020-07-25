@@ -55,10 +55,6 @@ if __name__ == '__main__':
 
     t0 = time()
 
-    # if args.pretrain == 1:
-    #     pretrain_data = load_pretrained_data()
-    # else:
-    #     pretrain_data = None
     pretrain_data = None
     
     model = Model(data_config=config, pretrain_data=pretrain_data, args = args)
