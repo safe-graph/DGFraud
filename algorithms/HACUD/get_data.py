@@ -121,11 +121,8 @@ class Data(object):
 
 
     def print_statistics(self):
-<<<<<<< HEAD
         print('n_metapaths=%d' % (self.n_metapath))
-=======
         print('n_metapahts=%d' % (self.n_metapath))
->>>>>>> 0cdf7c11220f22aca01305a8da6b3376d92b6298
         print('n_nodes=%d' % (self.n_nodes))
         print('n_interactions=%s' % (self.n_int))
         print('n_train=%d, n_test=%d, sparsity=%s' % (self.n_train, self.n_test, (np.array(self.n_int)/(self.n_nodes * self.n_nodes))))

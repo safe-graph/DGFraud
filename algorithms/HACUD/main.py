@@ -5,10 +5,37 @@ from time import time
 import random
 import tensorflow as tf
 import scipy.sparse as sp
-
+from sklearn import metrics
 from parse import parse_args
 from get_data import Data
 from model import Model
+
+
+def calc_f1(y_true, y_pred):
+    
+    y_true = np.argmax(y_true, axis=1)
+    y_pred = np.argmax(y_pred, axis=1)
+
+    return metrics.f1_score(y_true, y_pred, average="micro"), metrics.f1_score(y_true, y_pred, average="macro")
+
+def cal_acc(y_true, y_pred):
+    y_true = np.argmax(y_true, axis=1)
+    y_pred = np.argmax(y_pred, axis=1)
+
+    return metrics.accuracy_score(y_true, y_pred)
+
+    # a = 0
+    # b = 0
+    # for i in range(len(y_true)):
+    #     if y_true[i] == y_pred[i]:
+    #         a+=1
+    #     b+=1
+    # return a/b
+
+    
+# def calc_auc(y_true, y_pred):
+#     return metrics.roc_auc_score(y_true, y_pred)
+
 
 if __name__ == '__main__':
     
@@ -96,15 +123,22 @@ if __name__ == '__main__':
             test_nodes = X_test
             test_label = y_test
             
-            test_loss, test_ce_loss, test_reg_loss = model.eval(sess, test_nodes, test_label)
+            test_loss, test_ce_loss, test_reg_loss, pred_label = model.eval(sess, test_nodes, test_label)
             
+            f1_scores = calc_f1(test_label, pred_label)
+            acc = cal_acc(test_label, pred_label)
+
+            # auc_score = calc_auc(pred_label, test_label)
+
+            val_f1_mic, val_f1_mac = f1_scores[0], f1_scores[1]
+
             if np.isnan(loss) == True:
     
                 print('ERROR: loss is nan.')
                 print('ce_loss =%s' % ce_loss)
                 sys.exit()
                 
-            log1 = 'Epoch {} Train: {:.4f} CE: {:.4f} Reg: {:.4f} Test: {:.4f}'.\
-				format(epoch, loss, ce_loss, reg_loss, test_loss)
-            
+            log1 = 'Epoch {} Train: {:.4f} CE: {:.4f} Reg: {:.4f} Test: {:.4f} F1_mic: {:.4f} F1_mac: {:.4f} Accuracy: {:.4f}'.\
+				format(epoch, loss, ce_loss, reg_loss, test_loss, val_f1_mic, val_f1_mac, acc)
+
             print(log1)

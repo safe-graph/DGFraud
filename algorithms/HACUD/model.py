@@ -57,7 +57,9 @@ class Model(object):
 
         self.label = tf.placeholder(tf.float32, shape=(None, self.n_class))
 
-        self.loss = self.create_loss(self.batch_embeddings, self.label)
+        self.pred_label = self.pred(self.batch_embeddings)
+
+        self.loss = self.create_loss(self.pred_label, self.label)
         
         self.opt = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.loss)
     
@@ -202,13 +204,17 @@ class Model(object):
 
         return e_u
 
-    def create_ce_loss(self, x, y):
+    def pred(self, x):
         for n in range(self.n_fc):
             if n == self.n_fc - 1:
                 x = tf.matmul(x, self.weights['W_%d' %n])+ self.weights['b_%d' %n]
             else:   
                 x = tf.nn.relu(tf.matmul(x, self.weights['W_%d' %n])+ 
                                 self.weights['b_%d' %n])
+        return x
+
+    def create_ce_loss(self, x, y):
+ 
         ce_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=x, labels=y),0)
 
         return ce_loss
@@ -242,6 +248,6 @@ class Model(object):
         return batch_loss, batch_ce_loss, reg_loss
     
     def eval(self, sess, nodes, labels):
-        batch_loss, batch_ce_loss, batch_reg_loss = sess.run([self.loss, self.ce_loss, self.reg_loss],
+        loss, ce_loss, reg_loss, pred_label = sess.run([self.loss, self.ce_loss, self.reg_loss, self.pred_label],
                             feed_dict={self.nodes: nodes, self.label: labels})
-        return batch_loss, batch_ce_loss, batch_reg_loss
+        return loss, ce_loss, reg_loss, pred_label
