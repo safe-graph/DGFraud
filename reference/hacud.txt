@@ -1,0 +1,12 @@
+@inproceedings{DBLP:conf/aaai/HuZSZLQ19,
+  author    = {Binbin Hu and
+               Zhiqiang Zhang and
+               Chuan Shi and
+               Jun Zhou and
+               Xiaolong Li and
+               Yuan Qi},
+  title     = {Cash-Out User Detection Based on Attributed Heterogeneous Information
+               Network with a Hierarchical Attention Mechanism},
+  booktitle = {The Thirty-Third AAAI Conference on Artificial Intelligence},
+  year      = {2019}
+}

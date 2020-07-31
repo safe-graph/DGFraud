@@ -1,3 +1,8 @@
+'''
+This code is due to Zhiwei Liu (@JimLiu96) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+'''
 import tensorflow as tf
 import models as models
 import layers as layers

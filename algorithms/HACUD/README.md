@@ -4,7 +4,7 @@
 
 The HACUD model is proposed by the [paper](https://aaai.org/ojs/index.php/AAAI/article/view/3884) below:
 
-```
+```bibtex
 @inproceedings{DBLP:conf/aaai/HuZSZLQ19,
   author    = {Binbin Hu and
                Zhiqiang Zhang and

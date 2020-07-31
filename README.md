@@ -26,7 +26,7 @@
 
 **Introduction** 
 
-**DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. It also includes several utility functions such as graph preprocessing, graph sampling, and performance evaluation. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
+**DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
@@ -41,6 +41,7 @@ If you use the toolbox in your project, please cite the [paper](https://arxiv.or
 ```
 
 **Useful Resources**
+- [UGFraud: An Unsupervised Graph-based Toolbox for Fraud Detection](https://github.com/safe-graph/UGFraud)
 - [Graph-based Fraud Detection Paper List](https://github.com/safe-graph/graph-fraud-detection-papers) 
 - [Awesome Fraud Detection Papers](https://github.com/benedekrozemberczki/awesome-fraud-detection-papers)
 - [Attack and Defense Papers on Graph Data](https://github.com/safe-graph/graph-adversarial-learning-literature)
@@ -71,7 +72,7 @@ python setup.py install
 * tensorflow>=1.14.0,<2.0
 * numpy>=1.16.4
 * scipy>=1.2.0
-networkx<=1.11
+* networkx<=1.11
 ```
 ## Datasets
 
@@ -144,7 +145,7 @@ The repository is organized as follows:
 | **GEM** | [Heterogeneous Graph Neural Networks for Malicious Account Detection](https://arxiv.org/pdf/2002.12307.pdf)  | CIKM 2018 |[BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/gem.txt) |
 | **GraphSAGE** | [Inductive Representation Learning on Large Graphs](https://arxiv.org/pdf/1706.02216.pdf)  | NIPS 2017  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphsage.txt) |
 | **GraphConsis** | [Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection](https://arxiv.org/pdf/2005.00625.pdf)  | SIGIR 2020  | [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/graphconsis.txt) |
-<!--| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  Bibtex |-->
+| **HACUD** | [Cash-Out User Detection Based on Attributed Heterogeneous Information Network with a Hierarchical Attention Mechanism](https://aaai.org/ojs/index.php/AAAI/article/view/3884)  | AAAI 2019 |  [BibTex](https://github.com/safe-graph/DGFraud/blob/master/reference/hacud.txt) |
 
 
 ## Model Comparison
@@ -158,7 +159,7 @@ The repository is organized as follows:
 | **GEM** | Financial Fraud  | Heterogeneous |GCN |
 | **GraphSAGE** | Opinion Fraud  | Homogeneous   | GraphSAGE |
 | **GraphConsis** | Opinion Fraud  | Heterogeneous   | GraphSAGE |
-<!--| **HACUD** |  |  |   |-->
+| **HACUD** | Financial Fraud | Heterogeneous | GAT |
 
 
 ## TODO List
@@ -170,8 +171,8 @@ The repository is organized as follows:
 - Benchmarking SOTA models
 - Scalable implementation
 - TensorFlow 2.0+ implementation
-- Pytorch version
+- Pytorch implementation
 
 ## How to Contribute
-You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
+You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [bdscsafegraph@gmail.com](mailto:bdscsafegraph@gmail.com) for inquiry.
 

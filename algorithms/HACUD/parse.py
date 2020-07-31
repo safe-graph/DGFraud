@@ -1,3 +1,8 @@
+'''
+This code is due to Hengrui Zhang (@hengruizhang98) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+'''
 import argparse
 
 def parse_args():
