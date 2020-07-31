@@ -12,11 +12,11 @@
     <a href="https://github.com/safe-graph/DGFraud/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/safe-graph/DGFraud">
     </a>
-    <a href="https://github.com/safe-graph/DGFraud/archive/master.zip">
-        <img alt="Downloads" src="https://img.shields.io/github/downloads/safe-graph/DGFraud/total">
-    </a>
-    <a href="https://github.com/safe-graph/DGFraud/releases">
+    <a href="https://github.com/safe-graph/DGFraud/pulls">
         <img alt="GitHub release" src="https://img.shields.io/github/v/release/safe-graph/DGFraud?include_prereleases">
+    </a>
+    <a href="https://github.com/safe-graph/DGFraud/archive/master.zip">
+        <img alt="PRs" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
     </a>
 </p>
 
