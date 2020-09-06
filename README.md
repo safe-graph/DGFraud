@@ -30,7 +30,18 @@
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
 
-If you use the toolbox in your project, please cite the [paper](https://arxiv.org/abs/2005.00625) below and the [algorithms](#implemented-models) you used :
+If you use the toolbox in your project, please cite one of the two papers below and the [algorithms](#implemented-models) you used :
+
+CIKM'20 ([PDF](https://arxiv.org/pdf/2008.08692.pdf))
+```bibtex
+@inproceedings{dou2020enhancing,
+  title={Enhancing Graph Neural Network-based Fraud Detectors against Camouflaged Fraudsters},
+  author={Dou, Yingtong and Liu, Zhiwei and Sun, Li and Deng, Yutong and Peng, Hao and Yu, Philip S},
+  booktitle={Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM'20)},
+  year={2020}
+}
+```
+SIGIR'20 ([PDF](https://arxiv.org/pdf/2005.00625.pdf))
 ```bibtex
 @inproceedings{liu2020alleviating,
   title={Alleviating the Inconsistency Problem of Applying Graph Neural Network to Fraud Detection},
