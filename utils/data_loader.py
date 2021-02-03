@@ -20,18 +20,22 @@ def unzip_file(zip_src, dst_dir):
         print('Zip Error.')
 
 
-def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat'):
+def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', train_size=0.8, meta=True):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
-    rownetworks = [data['net_APA'] - np.eye(N)]
-    # rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
-    y = truelabels
-    index = range(len(y))
-    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
-                                                        shuffle=True)
 
-    return rownetworks, features, X_train, y_train, X_test, y_test
+    if not meta:
+        rownetworks = [data['net_APA'] - np.eye(N)]
+    else:
+        rownetworks = [data['net_APA'] - np.eye(N), data['net_APCPA'] - np.eye(N), data['net_APTPA'] - np.eye(N)]
+
+    y = truelabels
+    index = np.arange(len(y))
+    X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=1-train_size, random_state=48, shuffle=True)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, stratify=y_train, test_size=0.2, random_state=48, shuffle=True)
+
+    return rownetworks, features, X_train, y_train, X_val, y_val, X_test, y_test, np.array(y)
 
 
 def load_example_semi():
