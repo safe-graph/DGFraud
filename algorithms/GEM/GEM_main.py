@@ -1,114 +1,96 @@
-'''
-This code is due to Yutong Deng (@yutongD), Yingtong Dou (@YingtongDou) and UIC BDSC Lab
-DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
-https://github.com/safe-graph/DGFraud
-'''
-import tensorflow as tf
-import argparse
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
-from algorithms.GEM.GEM import GEM
+
+import tensorflow as tf
+from tensorflow.keras import optimizers
+
+import argparse
 import time
+from tqdm import tqdm
+
+from algorithms.GEM.GEM import GEM
+
 from utils.data_loader import *
 from utils.utils import *
+
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 # init the common args, expect the model specific args
-def arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp','example']")
-    parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=1000)
-    parser.add_argument('--momentum', type=int, default=0.9)
-    parser.add_argument('--learning_rate', default=0.001, help='the ratio of training set in whole dataset.')
+parser = argparse.ArgumentParser()
+parser.add_argument('--seed', type=int, default=123, help='Random seed.')
+parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp','example']")
+parser.add_argument('--train_size', type=float, default=0.8, help='training set percentage')
+parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
+parser.add_argument('--momentum', type=int, default=0.9)
+parser.add_argument('--lr', default=0.001, help='learning rate')
 
-    # GEM
-    parser.add_argument('--hop', default=1, help='hop number')
-    parser.add_argument('--k', default=16, help='gem layer unit')
+# GEM
+parser.add_argument('--hop', default=1, help='hop number')
+parser.add_argument('--output_dim', default=16, help='gem layer unit')
 
-    args = parser.parse_args()
-    return args
+args = parser.parse_args()
+
+#set seed
+np.random.seed(args.seed)
+tf.random.set_seed(args.seed)
+
+def main(support: list, features: tf.SparseTensor, label: tf.Tensor, masks: list, args):
+    """
+    @param support: a list of the sparse adjacency matrix
+    @param features: the feature of the sparse tensor for all nodes
+    @param label: the label tensor for all nodes
+    @param masks: a list of mask tensors to obtain the train, val, and test data
+    @param args: additional parameters
+    """
+    model = GEM(args.input_dim, args.output_dim, args)
+    optimizer = optimizers.Adam(lr=args.lr)
+
+    #train
+    for epoch in tqdm(range(args.epoch_num)):
+
+        with tf.GradientTape() as tape:
+            train_loss, train_acc = model([support, features, label, masks[0]])
+
+        grads = tape.gradient(train_loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+        #validation
+        val_loss, val_acc = model([support, features, label, masks[1]])
+        print(f"Epoch: {epoch:d}, train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f},"
+              f"val_loss: {val_loss:.4f}, val_acc: {val_acc:.4f}")
+
+    #test
+    test_loss, test_acc = model([support, features, label, masks[2]])
+    print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}")
 
 
-def set_env(args):
-    tf.reset_default_graph()
-    np.random.seed(args.seed)
-    tf.set_random_seed(args.seed)
 
-
-# get batch data
-def get_data(ix, int_batch, train_size):
-    if ix + int_batch >= train_size:
-        ix = train_size - int_batch
-        end = train_size
-    else:
-        end = ix + int_batch
-    return train_data[ix:end], train_label[ix:end]
-
-
-def load_data(args):
-    if args.dataset_str == 'dblp':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_dblp()
-    if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_example_gem()
-    node_size = features.shape[0]
-    node_embedding = features.shape[1]
-    class_size = train_label.shape[1]
-    train_size = len(train_data)
-    paras = [node_size, node_embedding, class_size, train_size]
-
-    return adj_list, features, train_data, train_label, test_data, test_label, paras
-
-
-def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
-    with tf.Session() as sess:
-
-        adj_data = adj_list
-        meta_size = len(adj_list)  # device num
-        net = GEM(session=sess, class_size=paras[2], encoding=args.k,
-                  meta=meta_size, nodes=paras[0], embedding=paras[1], hop=args.hop)
-
-        sess.run(tf.global_variables_initializer())
-        # net.load(sess)
-
-        t_start = time.clock()
-        for epoch in range(args.epoch_num):
-            train_loss = 0
-            train_acc = 0
-            count = 0
-            for index in range(0, paras[3], args.batch_size):
-                batch_data, batch_label = get_data(index, args.batch_size, paras[3])
-                loss, acc, pred, prob = net.train(features, adj_data, batch_label,
-                                                  batch_data, args.learning_rate,
-                                                  args.momentum)
-
-                print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
-                # print(prob, pred)
-
-                train_loss += loss
-                train_acc += acc
-                count += 1
-            train_loss = train_loss / count
-            train_acc = train_acc / count
-            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
-            # net.save(sess)
-
-        t_end = time.clock()
-        print("train time=", "{:.5f}".format(t_end - t_start))
-        print("Train end!")
-
-        test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, test_label,
-                                                                      test_data)
-
-    print("test acc:", test_acc)
 
 
 if __name__ == "__main__":
-    args = arg_parser()
-    set_env(args)
-    adj_list, features, train_data, train_label, test_data, test_label, paras = load_data(args)
-    train(args, adj_list, features, train_data, train_label, test_data, test_label, paras)
+    adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_dblp(meta=True, train_size=args.train_size)
+
+    # convert to dense tensors
+    # train_mask = tf.convert_to_tensor(sample_mask(idx_train, y.shape[0]))
+    # val_mask = tf.convert_to_tensor(sample_mask(idx_val, y.shape[0]))
+    # test_mask = tf.convert_to_tensor(sample_mask(idx_test, y.shape[0]))
+    label = tf.convert_to_tensor(y)
+
+    #initialize the model parameters
+    args.input_dim = features.shape[1]
+    args.nodes_num = features.shape[0]
+    args.class_size = y.shape[1]
+    args.train_size = len(idx_train)
+    args.device_num = len(adj_list)
+
+    #use the whole graph
+    idx_train = np.arange(args.nodes_num)
+    idx_val = np.arange(args.nodes_num)
+    idx_test = np.arange(args.nodes_num)
+
+    main(adj_list, features, label, [idx_train, idx_val, idx_test], args)
+
