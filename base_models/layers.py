@@ -5,9 +5,10 @@ https://github.com/safe-graph/DGFraud
 '''
 from base_models.inits import *
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 
-flags = tf.app.flags
-FLAGS = flags.FLAGS
+
 
 # global unique layer ID dictionary for layer name assignment
 _LAYER_UIDS = {}
@@ -464,45 +465,40 @@ class GASConcatenation(Layer):
         return concate_vecs
 
 
-class GEMLayer(Layer):
+class GEMLayer(layers.Layer):
     """This layer equals to the equation (8) in
     paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
     """
 
-    def __init__(self, placeholders, nodes, device_num, embedding, encoding, name=None, **kwargs):
+    def __init__(self, nodes_num, input_dim, output_dim,  device_num,  **kwargs):
         super(GEMLayer, self).__init__(**kwargs)
 
-        self.nodes = nodes
+        self.nodes_num = nodes_num
+        self.input_dim = input_dim
+        self.output_dim = output_dim
         self.devices_num = device_num
-        self.encoding = encoding
-        self.embedding = embedding
-        self.placeholders = placeholders
+        self.W = self.add_variable('weight', [input_dim, output_dim], dtype='double')
+        self.V = self.add_variable('V',[output_dim, output_dim], dtype='double')
+        self.alpha = self.add_variable('V', [self.devices_num, 1], dtype='double')
 
-        if name is not None:
-            name = '/' + name
-        else:
-            name = ''
 
-        with tf.variable_scope(self.name + name + '_vars'):
-            self.vars['W'] = glorot([embedding, encoding], name='W')
-            self.vars['V'] = glorot([encoding, encoding], name='V')
-            self.vars['alpha'] = glorot([self.devices_num, 1], name='V')
-        if self.logging:
-            self._log_vars()
-
-    def _call(self, inputs):
-        h1 = tf.matmul(self.placeholders['x'], self.vars['W'])
+    def __call__(self, inputs):
+        """
+        x means the feature sparse tensor for all nodes
+        support_ means a list of the sparse adjacency matrix
+        """
+        x, support_, h = inputs
+        h1 = tf.matmul(x, self.W)
         h2 = []
         for d in range(self.devices_num):
-            ahv = tf.matmul(tf.matmul(self.placeholders['a'][d], inputs), self.vars['V'])
+            ahv = tf.matmul(tf.matmul(support_[d], h), self.V)
             h2.append(ahv)
         h2 = tf.concat(h2, 0)
-        h2 = tf.reshape(h2, [self.devices_num, self.nodes * self.encoding])
+        h2 = tf.reshape(h2, [self.devices_num, self.nodes_num * self.output_dim])
         h2 = tf.transpose(h2, [1, 0])
-        h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.vars['alpha'])), [self.nodes, self.encoding])
+        h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.alpha)), [self.nodes_num, self.output_dim])
 
-        h = tf.nn.sigmoid(h1 + h2)
-        return h
+        return tf.nn.sigmoid(h1 + h2)
 
 
 class GAT(Layer):
@@ -611,3 +607,7 @@ class GeniePathLayer(Layer):
     #     x, (h, c) = self.depth_forward(x, h, c)
     #     x = x[0]
     #     return x, (h, c)
+
+
+
+
