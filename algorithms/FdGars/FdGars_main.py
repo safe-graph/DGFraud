@@ -38,11 +38,11 @@ np.random.seed(args.seed)
 tf.random.set_seed(args.seed)
 
 
-def main(support: list, features: tf.SparseTensor, label: tf.Tensor, masks: list, args):
+def main(support: list, features: {tf.SparseTensor, tf.SparseTensor, tf.SparseTensor}, label: tf.Tensor, masks: list, args):
 	"""
 	Main function to train, val and test the model
 	:param support: a list of the sparse adjacency matrix
-	:param features: the feature sparse tensor for all nodes
+	:param features: node feature tuple for all nodes {coords, values, shape}
 	:param label: the label tensor for all nodes
 	:param masks: a list of mask tensors to obtain the train, val, and test data
 	:param args: additional parameters
