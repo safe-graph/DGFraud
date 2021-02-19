@@ -463,44 +463,47 @@ class GASConcatenation(Layer):
 
         concate_vecs = tf.concat([ri, self.review_vecs, ru, self.homo_vecs], axis=1)
         return concate_vecs
-
-
+    
+    
 class GEMLayer(layers.Layer):
-    """This layer equals to the equation (8) in
-    paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
-    """
+	"""This layer equals to the equation (8) in
+	paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
+	"""
 
-    def __init__(self, nodes_num, input_dim, output_dim,  device_num,  **kwargs):
-        super(GEMLayer, self).__init__(**kwargs)
+	def __init__(self, nodes_num, input_dim, output_dim, device_num, is_sparse_inputs=False, **kwargs):
+		super(GEMLayer, self).__init__(**kwargs)
 
-        self.nodes_num = nodes_num
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        self.devices_num = device_num
-        self.W = self.add_variable('weight', [input_dim, output_dim], dtype='double')
-        self.V = self.add_variable('V',[output_dim, output_dim], dtype='double')
-        self.alpha = self.add_variable('V', [self.devices_num, 1], dtype='double')
-
-
-    def __call__(self, inputs):
-        """
-        x means the feature sparse tensor for all nodes
-        support_ means a list of the sparse adjacency matrix
-        """
-        x, support_, h = inputs
-        h1 = tf.matmul(x, self.W)
-        h2 = []
-        for d in range(self.devices_num):
-            ahv = tf.matmul(tf.matmul(support_[d], h), self.V)
-            h2.append(ahv)
-        h2 = tf.concat(h2, 0)
-        h2 = tf.reshape(h2, [self.devices_num, self.nodes_num * self.output_dim])
-        h2 = tf.transpose(h2, [1, 0])
-        h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.alpha)), [self.nodes_num, self.output_dim])
-
-        return tf.nn.sigmoid(h1 + h2)
+		self.nodes_num = nodes_num
+		self.input_dim = input_dim
+		self.output_dim = output_dim
+		self.devices_num = device_num
+		self.is_sparse_inputs = is_sparse_inputs
+		self.W = self.add_weight('weight', [input_dim, output_dim], dtype=tf.float32)
+		self.V = self.add_weight('V', [output_dim, output_dim], dtype=tf.float32)
+		self.alpha = self.add_weight('alpha', [self.devices_num, 1], dtype=tf.float32)
 
 
+	def __call__(self, inputs):
+		"""
+		x means the feature sparse tensor for all nodes
+		support_ means a list of the sparse adjacency matrix
+		"""
+		x, support_, h = inputs
+		h1 = dot(x, self.W, sparse=True)
+		h2 = []
+
+		for d in range(self.devices_num):
+			ahv = dot(dot(support_[d], h, sparse=True), self.V, sparse=False)
+			h2.append(ahv)
+
+		h2 = tf.concat(h2, 0)
+		h2 = tf.reshape(h2, [self.devices_num, self.nodes_num * self.output_dim])
+		h2 = tf.transpose(h2, [1, 0])
+		h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.alpha)), [self.nodes_num, self.output_dim])
+
+		return tf.nn.relu(h1 + h2)
+    
+    
 class GAT(Layer):
     """This layer is adapted from PetarV-/GAT.'
     """
