@@ -1,3 +1,8 @@
+'''
+This code is due to Zhiqin Yang (@visitworld123) from AT-BDSC Lab, Yingtong Dou (@YingtongDou)
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
+'''
 import os
 import sys
 
@@ -16,81 +21,81 @@ from utils.data_loader import *
 from utils.utils import *
 
 
-
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 # init the common args, expect the model specific args
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=123, help='Random seed.')
 parser.add_argument('--dataset_str', type=str, default='dblp', help="['dblp','example']")
-parser.add_argument('--train_size', type=float, default=0.8, help='training set percentage')
-parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
+parser.add_argument('--train_size', type=float, default=0.2, help='training set percentage')
+parser.add_argument('--epoch_num', type=int, default=44, help='Number of epochs to train.')
 parser.add_argument('--momentum', type=int, default=0.9)
-parser.add_argument('--lr', default=0.001, help='learning rate')
+parser.add_argument('--lr', default=0.002, help='learning rate')
 
 # GEM
-parser.add_argument('--hop', default=1, help='hop number')
-parser.add_argument('--output_dim', default=16, help='gem layer unit')
+parser.add_argument('--hop', default=2, help='number of hops of neighbors to be aggregated')
+parser.add_argument('--output_dim', default=128, help='gem layer unit')
 
 args = parser.parse_args()
 
-#set seed
+# set seed
 np.random.seed(args.seed)
 tf.random.set_seed(args.seed)
 
-def main(support: list, features: tf.SparseTensor, label: tf.Tensor, masks: list, args):
-    """
-    @param support: a list of the sparse adjacency matrix
-    @param features: the feature of the sparse tensor for all nodes
-    @param label: the label tensor for all nodes
-    @param masks: a list of mask tensors to obtain the train, val, and test data
-    @param args: additional parameters
-    """
-    model = GEM(args.input_dim, args.output_dim, args)
-    optimizer = optimizers.Adam(lr=args.lr)
 
-    #train
-    for epoch in tqdm(range(args.epoch_num)):
+def main(supports: list, features: tf.SparseTensor, label: tf.Tensor, masks: list, args):
+	"""
+	@param supports: a list of the sparse adjacency matrix
+	@param features: the feature of the sparse tensor for all nodes
+	@param label: the label tensor for all nodes
+	@param masks: a list of mask tensors to obtain the train, val, and test data
+	@param args: additional parameters
+	"""
+	model = GEM(args.input_dim, args.output_dim, args)
+	optimizer = optimizers.Adam(lr=args.lr)
 
-        with tf.GradientTape() as tape:
-            train_loss, train_acc = model([support, features, label, masks[0]])
+	# train
+	for epoch in tqdm(range(args.epoch_num)):
 
-        grads = tape.gradient(train_loss, model.trainable_variables)
-        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+		with tf.GradientTape() as tape:
+			train_loss, train_acc = model([supports, features, label, masks[0]])
 
-        #validation
-        val_loss, val_acc = model([support, features, label, masks[1]])
-        print(f"Epoch: {epoch:d}, train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f},"
-              f"val_loss: {val_loss:.4f}, val_acc: {val_acc:.4f}")
+		grads = tape.gradient(train_loss, model.trainable_variables)
+		optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-    #test
-    test_loss, test_acc = model([support, features, label, masks[2]])
-    print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}")
+		# validation
+		val_loss, val_acc = model([supports, features, label, masks[1]])
+		print(f"Epoch: {epoch:d}, train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f},"
+			  f"val_loss: {val_loss:.4f}, val_acc: {val_acc:.4f}")
 
-
-
+	# test
+	test_loss, test_acc = model([supports, features, label, masks[2]])
+	print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}")
 
 
 if __name__ == "__main__":
-    adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_dblp(meta=True, train_size=args.train_size)
+	adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_dblp(meta=True, train_size=args.train_size)
 
-    # convert to dense tensors
-    # train_mask = tf.convert_to_tensor(sample_mask(idx_train, y.shape[0]))
-    # val_mask = tf.convert_to_tensor(sample_mask(idx_val, y.shape[0]))
-    # test_mask = tf.convert_to_tensor(sample_mask(idx_test, y.shape[0]))
-    label = tf.convert_to_tensor(y)
+	# convert to dense tensors
+	label = tf.convert_to_tensor(y, dtype=tf.float32)
 
-    #initialize the model parameters
-    args.input_dim = features.shape[1]
-    args.nodes_num = features.shape[0]
-    args.class_size = y.shape[1]
-    args.train_size = len(idx_train)
-    args.device_num = len(adj_list)
+	# using single meta-path
+	#adj_list = [adj_list[0]]
 
-    #use the whole graph
-    idx_train = np.arange(args.nodes_num)
-    idx_val = np.arange(args.nodes_num)
-    idx_test = np.arange(args.nodes_num)
+	# initialize the model parameters
+	args.input_dim = features.shape[1]
+	args.nodes_num = features.shape[0]
+	args.class_size = y.shape[1]
+	args.train_size = len(idx_train)
+	args.device_num = len(adj_list)
 
-    main(adj_list, features, label, [idx_train, idx_val, idx_test], args)
+	features = preprocess_feature(features)
+	supports = [preprocess_adj(adj) for adj in adj_list]
 
+	# get sparse tensors
+	features = tf.cast(tf.SparseTensor(*features), dtype=tf.float32)
+	supports = [tf.cast(tf.SparseTensor(*support), dtype=tf.float32) for support in supports]
+
+	masks = [idx_train, idx_val, idx_test]
+
+	main(supports, features, label, masks, args)
