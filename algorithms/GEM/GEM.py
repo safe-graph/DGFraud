@@ -1,10 +1,14 @@
 '''
+This code is due to Yutong Deng (@yutongD), Yingtong Dou (@YingtongDou) and UIC BDSC Lab
+DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
+https://github.com/safe-graph/DGFraud
 
 GEM ('Heterogeneous Graph Neural Networks for Malicious Account Detection')
 
 Parameters:
-    input_dim: node feature dim
-    output_dim: nodes representation dim
+	input_dim: node feature dim
+	output_dim: nodes representation dim
+	args: other parameters
 '''
 import os
 import sys
@@ -17,74 +21,59 @@ from utils import utils
 from utils.metrics import *
 
 
-
 class GEM(keras.Model):
 
-    def __init__(self, input_dim, output_dim, args):
-        super().__init__()
+	def __init__(self, input_dim, output_dim, args):
+		super().__init__()
 
-        self.nodes_num = args.nodes_num
-        self.class_size = args.class_size
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        self.hop = args.hop
-        self.device_num = args.device_num
+		self.nodes_num = args.nodes_num
+		self.class_size = args.class_size
+		self.input_dim = input_dim
+		self.output_dim = output_dim
+		self.device_num = args.device_num
+		self.hop = args.hop
+		self.zero_init = tf.keras.initializers.Zeros()
+		self.h_0 = tf.Variable(
+				initial_value=self.zero_init(shape=(self.nodes_num, self.output_dim),
+									 dtype=tf.float32)
+		)
 
-    def __call__(self, inputs):
+		# GEM layers initialization
+		self.layers_ = []
+		self.input_layer = GEMLayer(self.nodes_num, self.input_dim, self.output_dim, self.device_num, is_sparse_inputs=True)
+		for _ in range(self.hop - 1):
+			self.layers_.append(GEMLayer(self.nodes_num, self.input_dim, self.output_dim, self.device_num))
 
-        """:param inputs include support, x, label, mask
-        support means a list of the sparse adjacency Tensor
-        x means feature
-        label means label tensor
-        mask means a list of mask tensors to obtain the train data
-        """
+		# logistic weights initialization
+		self.x_init = tf.keras.initializers.GlorotUniform()
+		self.u = tf.Variable(initial_value=self.x_init(shape=(self.output_dim, 4),
+									 dtype=tf.float32), trainable=True)
 
-        support, x, label, idx_mask = inputs
+	def __call__(self, inputs):
 
-        h_init = tf.keras.initializers.GlorotUniform()
-        h = tf.Variable(
-                initial_value=h_init(shape=(self.nodes_num, self.output_dim),
-                                     dtype='double')
-        )
+		""":param inputs include support, x, label, mask
+		support means a list of the sparse adjacency Tensor
+		x means feature
+		label means label tensor
+		mask means a list of mask tensors to obtain the train data
+		"""
 
-        #forward propagation
-        for i in range(0,self.hop):
-            f = GEMLayer(self.nodes_num, self.input_dim, self.output_dim, self.device_num)
-            gem_out = f((x, support, h))
-            h = tf.reshape(gem_out, [x.shape[0], self.output_dim])
-        print('GEM embedding over!')
+		supports, x, label, idx_mask = inputs
 
-        #classificaiton training process
-        masked_data = tf.gather(h, idx_mask)
-        masked_label = tf.gather(label, idx_mask)
+		# forward propagation
+		outputs = [self.input_layer((x, supports, self.h_0))]
+		for layer in self.layers_:
+			hidden = layer((x, supports, outputs[-1]))
+			outputs.append(hidden)
+		gem_out = outputs[-1]
 
-        #logitstic weights initialize
-        W_init = tf.keras.initializers.GlorotUniform()
-        u_init = tf.keras.initializers.GlorotUniform()
-        b_init = tf.keras.initializers.Zeros()
-        W = tf.Variable(
-                initial_value=W_init(shape=(self.output_dim, self.class_size),
-                                     dtype='double'),
-            trainable=True)
-        b = tf.Variable(
-            initial_value=b_init(shape=(1, self.class_size),
-                                 dtype='double'),
-            trainable=True)
-        u = tf.Variable(
-                initial_value=u_init(shape=(1, self.output_dim),
-                                     dtype='double'),
-            trainable=True)
+		# get masked data
+		masked_data = tf.gather(gem_out, idx_mask)
+		masked_label = tf.gather(label, idx_mask)
 
-        """This loss equals to the equation (7) in
-	    paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
-	    """
-        loss = -tf.reduce_sum(tf.math.log(
-            tf.nn.sigmoid(masked_label * tf.transpose(tf.matmul(u,tf.transpose(masked_data, perm=[1,0])),
-                                                perm=[1,0]))
-        ))
+		# Eq. (7) in paper
+		logits = tf.nn.softmax(tf.matmul(masked_data, self.u))
+		loss = -tf.reduce_sum(tf.math.log(tf.nn.sigmoid(masked_label * logits)))
+		acc = accuracy(logits, masked_label)
 
-        logits = tf.matmul(masked_data, W) + b
-        #
-        acc = accuracy(logits, masked_label)
-
-        return loss, acc
+		return loss, acc
