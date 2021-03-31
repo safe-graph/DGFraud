@@ -4,122 +4,92 @@ DGFraud (A Deep Graph-based Toolbox for Fraud Detection)
 https://github.com/safe-graph/DGFraud
 '''
 import tensorflow as tf
+from tensorflow.keras import optimizers
 import argparse
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 from algorithms.GAS.GAS import GAS
-import time
 from utils.data_loader import *
 from utils.utils import *
-
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 # init the common args, expect the model specific args
-def arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=123, help='Random seed.')
-    parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
-    parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
-    parser.add_argument('--batch_size', type=int, default=1000)
-    parser.add_argument('--momentum', type=int, default=0.9)
-    parser.add_argument('--learning_rate', default=0.001, help='the ratio of training set in whole dataset.')
+parser = argparse.ArgumentParser()
+parser.add_argument('--seed', type=int, default=123, help='Random seed.')
+parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
+parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
+parser.add_argument('--batch_size', type=int, default=1000)
+parser.add_argument('--momentum', type=int, default=0.9)
+parser.add_argument('--lr', default=0.001, help='learning rate')
+parser.add_argument('--learning_rate', default=0.001, help='the ratio of training set in whole dataset.')
 
-    # GAS
-    parser.add_argument('--review_num sample', default=7, help='review number.')
-    parser.add_argument('--gcn_dim', type=int, default=5, help='gcn layer size.')
-    parser.add_argument('--encoding1', type=int, default=64)
-    parser.add_argument('--encoding2', type=int, default=64)
-    parser.add_argument('--encoding3', type=int, default=64)
-    parser.add_argument('--encoding4', type=int, default=64)
+# GAS
+parser.add_argument('--review_num sample', default=7, help='review number.')
+parser.add_argument('--gcn_dim', type=int, default=5, help='gcn layer size.')
+parser.add_argument('--output_dim1', type=int, default=64)
+parser.add_argument('--output_dim2', type=int, default=64)
+parser.add_argument('--output_dim3', type=int, default=64)
+parser.add_argument('--output_dim4', type=int, default=64)
+parser.add_argument('--output_dim5', type=int, default=64)
+parser.add_argument('--dropout', type=float, default=0.5, help='dropout rate')
 
-    args = parser.parse_args()
-    return args
+args = parser.parse_args()
 
-
-def set_env(args):
-    tf.reset_default_graph()
-    np.random.seed(args.seed)
-    tf.set_random_seed(args.seed)
-
-
-# get batch data
-def get_data(ix, int_batch, train_size):
-    if ix + int_batch >= train_size:
-        ix = train_size - int_batch
-        end = train_size
-    else:
-        end = ix + int_batch
-    return train_data[ix:end], train_label[ix:end]
+# set seed
+np.random.seed(args.seed)
+tf.random.set_seed(args.seed)
 
 
-def load_data(args):
-    if args.dataset_str == 'example':
-        adj_list, features, train_data, train_label, test_data, test_label = load_data_gas()
-        node_embedding_r = features[0].shape[1]
-        node_embedding_u = features[1].shape[1]
-        node_embedding_i = features[2].shape[1]
-        node_size = features[0].shape[0]
+def main(adj_list: list, r_support: list, features: tf.Tensor, r_features: tf.SparseTensor, label: tf.Tensor, masks: list, args):
+    model = GAS(args)
+    optimizer = optimizers.Adam(lr=args.lr)
 
-        # node_embedding_i = node_embedding_r = node_size
-        h_u_size = adj_list[0].shape[1] * (node_embedding_r + node_embedding_u)
-        h_i_size = adj_list[2].shape[1] * (node_embedding_r + node_embedding_i)
+    for epoch in range(args.epoch_num):
+        with tf.GradientTape() as tape:
+            train_loss, train_acc = model([adj_list, r_support, features, r_features, label, masks[0]])
 
-        class_size = train_label.shape[1]
-        train_size = len(train_data)
+        grads = tape.gradient(train_loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-        paras = [node_size, node_embedding_r, node_embedding_u, node_embedding_i, class_size, train_size, h_u_size,
-                 h_i_size]
-
-    return adj_list, features, train_data, train_label, test_data, test_label, paras
-
-
-def train(args, adj_list, features, train_data, train_label, test_data, test_label, paras):
-    with tf.Session() as sess:
-        adj_data = adj_list
-        net = GAS(session=sess, nodes=paras[0], class_size=paras[4], embedding_r=paras[1], embedding_u=paras[2],
-                      embedding_i=paras[3], h_u_size=paras[6], h_i_size=paras[7],
-                      encoding1=args.encoding1, encoding2=args.encoding2, encoding3=args.encoding3,
-                      encoding4=args.encoding4, gcn_dim=args.gcn_dim)
-
-        sess.run(tf.global_variables_initializer())
-        # net.load(sess)
-
-        t_start = time.clock()
-        for epoch in range(args.epoch_num):
-            train_loss = 0
-            train_acc = 0
-            count = 0
-            for index in range(0, paras[3], args.batch_size):
-                batch_data, batch_label = get_data(index, args.batch_size, paras[3])
-                loss, acc, pred, prob = net.train(features, adj_data, batch_label,
-                                                  batch_data, args.learning_rate,
-                                                  args.momentum)
-
-                print("batch loss: {:.4f}, batch acc: {:.4f}".format(loss, acc))
-                # print(prob, pred)
-
-                train_loss += loss
-                train_acc += acc
-                count += 1
-            train_loss = train_loss / count
-            train_acc = train_acc / count
-            print("epoch{:d} : train_loss: {:.4f}, train_acc: {:.4f}".format(epoch, train_loss, train_acc))
-            # net.save(sess)
-
-        t_end = time.clock()
-        print("train time=", "{:.5f}".format(t_end - t_start))
-        print("Train end!")
-
-        test_acc, test_pred, test_probabilities, test_tags = net.test(features, adj_data, test_label,
-                                                                      test_data)
-
-    print("test acc:", test_acc)
+    test_loss, test_acc = model([adj_list, r_support, features, r_features, label, masks[1]])
+    print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}")
 
 
 if __name__ == "__main__":
-    args = arg_parser()
-    set_env(args)
-    adj_list, features, train_data, train_label, test_data, test_label, paras = load_data(args)
-    train(args, adj_list, features, train_data, train_label, test_data, test_label, paras)
+    # load the data
+    adj_list, features, X_train, y_train, y = load_data_gas()
+    r_support, r_features = adj_list, features
+    r_support = np.array(r_support[6], dtype=float)
+    r_features = np.array(r_features[0], dtype=float)
+
+    # convert to dense tensors
+    features[0] = tf.convert_to_tensor(features[0], dtype=tf.float32)
+    features[1] = tf.convert_to_tensor(features[1], dtype=tf.float32)
+    features[2] = tf.convert_to_tensor(features[2], dtype=tf.float32)
+    label = tf.convert_to_tensor(y, dtype=tf.float32)
+
+    # get sparse tuples
+    r_features = preprocess_feature(r_features)
+    r_support = preprocess_adj(r_support)
+
+    # initialize the model parameters
+    args.reviews_num = features[0].shape[0]
+    args.class_size = y.shape[1]
+    args.input_dim_i = features[2].shape[1]
+    args.input_dim_u = features[1].shape[1]
+    args.input_dim_r = features[0].shape[1]
+    args.input_dim_r_gcn = r_features[2][1]
+    args.num_features_nonzero = r_features[1].shape
+    args.h_u_size = adj_list[0].shape[1] * (args.input_dim_r + args.input_dim_u)
+    args.h_i_size = adj_list[2].shape[1] * (args.input_dim_r + args.input_dim_i)
+
+    # get sparse tensors
+    r_features = tf.SparseTensor(*r_features)
+    r_support = [tf.cast(tf.SparseTensor(*r_support), dtype=tf.float32)]
+
+    masks = [X_train, y_train]
+
+    main(adj_list, r_support, features, r_features, label, [X_train, y_train], args)
