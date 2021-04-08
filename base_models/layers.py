@@ -321,6 +321,36 @@ class ConcatenationAggregator(Layer):
 		return self.act(output)
 
 
+class MeanAggregator(Layer):
+	def __init__(self, src_dim, dst_dim, activ=True, **kwargs):
+		"""
+		:param int src_dim: input dimension
+		:param int dst_dim: output dimension
+		"""
+		super().__init__(**kwargs)
+		self.activ_fn = tf.nn.relu if activ else tf.identity
+		self.w = self.add_weight(name = kwargs["name"] + "_weight",
+								shape = (src_dim*2, dst_dim),
+								dtype = tf.float32,
+								initializer = init_fn,
+								trainable = True
+								)
+		
+	def call(self, dstsrc_features, dstsrc2src, dstsrc2dst, dif_mat):
+		"""
+		:param tensor dstsrc_features: the embedding from the previous layer
+		:param tensor dstsrc2dst: 1d index mapping (prepraed by minibatch generator)
+		:param tensor dstsrc2src: 1d index mapping (prepraed by minibatch generator)
+		:param tensor dif_mat: 2d diffusion matrix (prepraed by minibatch generator)
+		"""
+		dst_features = tf.gather(dstsrc_features, dstsrc2dst)
+		src_features = tf.gather(dstsrc_features, dstsrc2src)
+		aggregated_features = tf.matmul(dif_mat, src_features)
+		concatenated_features = tf.concat([aggregated_features, dst_features], 1)
+		x = tf.matmul(concatenated_features, self.w)
+		return self.activ_fn(x)
+
+		
 class AttentionAggregator(Layer):
 	"""This layer equals to equation (5) and equation (8) in
 	paper 'Spam Review Detection with Graph Convolutional Networks.'

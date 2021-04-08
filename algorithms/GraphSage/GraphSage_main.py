@@ -62,7 +62,7 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 	for epoch in range(args.epochs):
 		print(f"Epoch {epoch:d}: training...")
 		minibatch_generator = generate_training_minibatch(train_nodes, labels, args.batch_size)
-		for inputs, inputs_labels in tqdm(minibatch_generator, total=len(train_nodes)/args.batch_size):
+		for inputs, inputs_labels in tqdm(minibatch_generator, total=len(train_nodes) / args.batch_size):
 			with tf.GradientTape() as tape:
 				predicted = model(inputs)
 				loss = loss_fn(tf.convert_to_tensor(inputs_labels), predicted)
