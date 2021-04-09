@@ -8,8 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-# flags = tf.app.flags
-# FLAGS = flags.FLAGS
+init_fn = tf.keras.initializers.GlorotUniform
 
 # global unique layer ID dictionary for layer name assignment
 _LAYER_UIDS = {}
@@ -18,9 +17,7 @@ _LAYER_UIDS = {}
 
 
 def get_layer_uid(layer_name=''):
-	"""
-	Helper function, assigns unique layer IDs.
-	"""
+	"""Helper function, assigns unique layer IDs."""
 	if layer_name not in _LAYER_UIDS:
 		_LAYER_UIDS[layer_name] = 1
 		return 1
@@ -41,11 +38,9 @@ def sparse_dropout(x, rate, noise_shape):
 
 
 def dot(x, y, sparse=False):
-	"""
-	Wrapper for tf.matmul (sparse vs dense).
-	"""
+	"""Wrapper for tf.matmul (sparse vs dense)."""
 	if sparse:
-		res = tf.sparse.sparse_dense_matmul(x, y)
+		res = tf.sparse_tensor_dense_matmul(x, y)
 	else:
 		res = tf.matmul(x, y)
 	return res
@@ -100,55 +95,55 @@ class Layer(object):
 			tf.summary.histogram(self.name + '/vars/' + var, self.vars[var])
 
 
-class GraphConvolution(layers.Layer):
-	"""
-	Graph convolution layer.
-	Source: https://github.com/dragen1860/GCN-TF2/blob/89a71486b28a913fe50a69306f96de567a8c8bf8/layers.py#L95
-	"""
-	def __init__(self, input_dim, output_dim, num_features_nonzero,
-				 dropout=0.,
-				 is_sparse_inputs=False,
-				 activation=tf.nn.relu,
-				 norm=False,
-				 bias=False,
-				 featureless=False, **kwargs):
+class GraphConvolution(Layer):
+	"""Graph convolution layer."""
+
+	def __init__(self, input_dim, output_dim, placeholders, index=0, dropout=0.,
+				 sparse_inputs=False, act=tf.nn.relu, bias=False,
+				 featureless=False, norm=False, **kwargs):
 		super(GraphConvolution, self).__init__(**kwargs)
 
 		self.dropout = dropout
-		self.activation = activation
-		self.is_sparse_inputs = is_sparse_inputs
+		self.act = act
+		self.support = placeholders['a']
+		self.sparse_inputs = sparse_inputs
 		self.featureless = featureless
 		self.bias = bias
 		self.norm = norm
-		self.num_features_nonzero = num_features_nonzero
+		self.index = index
 
-		self.weights_ = []
-		for i in range(1):
-			w = self.add_variable('weight' + str(i), [input_dim, output_dim])
-			self.weights_.append(w)
-		if self.bias:
-			self.bias = self.add_variable('bias', [output_dim])
+		# helper variable for sparse dropout
+		self.num_features_nonzero = placeholders['num_features_nonzero']
 
-	def call(self, inputs, training=None):
-		x, support_ = inputs
+		with tf.variable_scope(self.name + '_vars'):
+			for i in range(1):
+				self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
+														name='weights_' + str(i))
+			if self.bias:
+				self.vars['bias'] = zeros([output_dim], name='bias')
+
+		if self.logging:
+			self._log_vars()
+
+	def _call(self, inputs):
+		x = inputs
 
 		# dropout
-		if training is not False and self.is_sparse_inputs:
-			x = sparse_dropout(x, self.dropout, self.num_features_nonzero)
-		elif training is not False:
-			x = tf.nn.dropout(x, self.dropout)
+		if self.sparse_inputs:
+			x = sparse_dropout(x, 1 - self.dropout, self.num_features_nonzero)
+		else:
+			x = tf.nn.dropout(x, 1 - self.dropout)
 
 		# convolve
 		supports = list()
-		for i in range(len(support_)):
-			if not self.featureless: # if it has features x
-				pre_sup = dot(x, self.weights_[i], sparse=self.is_sparse_inputs)
+		for i in range(1):
+			if not self.featureless:
+				pre_sup = dot(x, self.vars['weights_' + str(i)],
+							  sparse=self.sparse_inputs)
 			else:
-				pre_sup = self.weights_[i]
-
-			support = dot(support_[i], pre_sup, sparse=True)
+				pre_sup = self.vars['weights_' + str(i)]
+			support = dot(self.support[self.index], pre_sup, sparse=False)
 			supports.append(support)
-
 		output = tf.add_n(supports)
 		axis = list(range(len(output.get_shape()) - 1))
 		mean, variance = tf.nn.moments(output, axis)
@@ -159,14 +154,14 @@ class GraphConvolution(layers.Layer):
 
 		# bias
 		if self.bias:
-			output += self.bias
+			output += self.vars['bias']
 		if self.norm:
-			return tf.nn.l2_normalize(self.activation(output), axis=None, epsilon=1e-12)
+			# return self.act(output)/tf.reduce_sum(self.act(output))
+			return tf.nn.l2_normalize(self.act(output), axis=None, epsilon=1e-12)
+		return self.act(output)
 
-		return self.activation(output)
 
-
-class AttentionLayer(Layer):
+class AttentionLayer(layers.Layer):
 	""" AttentionLayer is a function f : hkey × Hval → hval which maps
 	a feature vector hkey and the set of candidates’ feature vectors
 	Hval to an weighted sum of elements in Hval.
@@ -183,14 +178,13 @@ class AttentionLayer(Layer):
 		b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
 		u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
 
-		with tf.name_scope('v'):
-			v = tf.tensordot(inputs, w_omega, axes=1)
-			if bias is True:
-				v += b_omega
-			if v_type is 'tanh':
-				v = tf.tanh(v)
-			if v_type is 'relu':
-				v = tf.nn.relu(v)
+		v = tf.tensordot(inputs, w_omega, axes=1)
+		if bias is True:
+			v += b_omega
+		if v_type is 'tanh':
+			v = tf.tanh(v)
+		if v_type is 'relu':
+			v = tf.nn.relu(v)
 
 		vu = tf.tensordot(v, u_omega, axes=1, name='vu')
 		weights = tf.nn.softmax(vu, name='alphas')
@@ -265,63 +259,7 @@ class AttentionLayer(Layer):
 		return output, weights
 
 
-class ConcatenationAggregator(Layer):
-	"""This layer equals to the equation (3) in
-	paper 'Spam Review Detection with Graph Convolutional Networks.'
-	"""
-
-	def __init__(self, input_dim, output_dim, review_item_adj, review_user_adj,
-				 review_vecs, user_vecs, item_vecs, dropout=0., act=tf.nn.relu,
-				 name=None, concat=False, **kwargs):
-		super(ConcatenationAggregator, self).__init__(**kwargs)
-
-		self.review_item_adj = review_item_adj
-		self.review_user_adj = review_user_adj
-		self.review_vecs = review_vecs
-		self.user_vecs = user_vecs
-		self.item_vecs = item_vecs
-
-		self.dropout = dropout
-		self.act = act
-		self.concat = concat
-
-		if name is not None:
-			name = '/' + name
-		else:
-			name = ''
-
-		with tf.variable_scope(self.name + name + '_vars'):
-			self.vars['con_agg_weights'] = glorot([input_dim, output_dim],
-												  name='con_agg_weights')
-
-		if self.logging:
-			self._log_vars()
-
-		self.input_dim = input_dim
-		self.output_dim = output_dim
-
-	def _call(self, inputs):
-		review_vecs = tf.nn.dropout(self.review_vecs, 1 - self.dropout)
-		user_vecs = tf.nn.dropout(self.user_vecs, 1 - self.dropout)
-		item_vecs = tf.nn.dropout(self.item_vecs, 1 - self.dropout)
-
-		# neighbor sample
-		ri = tf.nn.embedding_lookup(item_vecs,
-									tf.cast(self.review_item_adj, dtype=tf.int32))
-		ri = tf.transpose(tf.random_shuffle(tf.transpose(ri)))
-
-		ru = tf.nn.embedding_lookup(user_vecs, tf.cast(self.review_user_adj, dtype=tf.int32))
-		ru = tf.transpose(tf.random_shuffle(tf.transpose(ru)))
-
-		concate_vecs = tf.concat([review_vecs, ru, ri], axis=1)
-
-		# [nodes] x [out_dim]
-		output = tf.matmul(concate_vecs, self.vars['con_agg_weights'])
-
-		return self.act(output)
-
-
-class MeanAggregator(Layer):
+class MeanAggregator(layers.Layer):
 	def __init__(self, src_dim, dst_dim, activ=True, **kwargs):
 		"""
 		:param int src_dim: input dimension
@@ -329,14 +267,14 @@ class MeanAggregator(Layer):
 		"""
 		super().__init__(**kwargs)
 		self.activ_fn = tf.nn.relu if activ else tf.identity
-		self.w = self.add_weight(name = kwargs["name"] + "_weight",
-								shape = (src_dim*2, dst_dim),
-								dtype = tf.float32,
-								initializer = init_fn,
-								trainable = True
-								)
-		
-	def call(self, dstsrc_features, dstsrc2src, dstsrc2dst, dif_mat):
+		self.w = self.add_weight(name=kwargs["name"] + "_weight",
+								 shape=(src_dim * 2, dst_dim),
+								 dtype=tf.float32,
+								 initializer=init_fn,
+								 trainable=True
+								 )
+
+	def __call__(self, dstsrc_features, dstsrc2src, dstsrc2dst, dif_mat):
 		"""
 		:param tensor dstsrc_features: the embedding from the previous layer
 		:param tensor dstsrc2dst: 1d index mapping (prepraed by minibatch generator)
@@ -350,78 +288,97 @@ class MeanAggregator(Layer):
 		x = tf.matmul(concatenated_features, self.w)
 		return self.activ_fn(x)
 
-		
-class AttentionAggregator(Layer):
+
+class ConcatenationAggregator(layers.Layer):
+	"""This layer equals to the equation (3) in
+	paper 'Spam Review Detection with Graph Convolutional Networks.'
+	"""
+
+	def __init__(self, input_dim, output_dim, dropout=0., act=tf.nn.relu,
+				 concat=False, **kwargs):
+		super(ConcatenationAggregator, self).__init__(**kwargs)
+
+		self.input_dim = input_dim
+		self.output_dim = output_dim
+		self.dropout = dropout
+		self.act = act
+		self.concat = concat
+		self.con_agg_weights = self.add_weight('con_agg_weights', [input_dim, output_dim], dtype=tf.float32)
+
+	def __call__(self, inputs):
+		adj_list, features = inputs
+
+		review_vecs = tf.nn.dropout(features[0], self.dropout)
+		user_vecs = tf.nn.dropout(features[1], self.dropout)
+		item_vecs = tf.nn.dropout(features[2], self.dropout)
+
+		# neighbor sample
+		ri = tf.nn.embedding_lookup(item_vecs, tf.cast(adj_list[5], dtype=tf.int32))
+		ri = tf.transpose(tf.random.shuffle(tf.transpose(ri)))
+
+		ru = tf.nn.embedding_lookup(user_vecs, tf.cast(adj_list[4], dtype=tf.int32))
+		ru = tf.transpose(tf.random.shuffle(tf.transpose(ru)))
+
+		concate_vecs = tf.concat([review_vecs, ru, ri], axis=1)
+
+		# [nodes] x [out_dim]
+		output = dot(concate_vecs, self.con_agg_weights, sparse=False)
+
+		return self.act(output)
+
+
+class AttentionAggregator(layers.Layer):
 	"""This layer equals to equation (5) and equation (8) in
 	paper 'Spam Review Detection with Graph Convolutional Networks.'
 	"""
 
-	def __init__(self, input_dim1, input_dim2, output_dim, hid_dim, user_review_adj, user_item_adj, item_review_adj,
-				 item_user_adj,
-				 review_vecs, user_vecs, item_vecs, dropout=0., bias=False, act=tf.nn.relu,
-				 name=None, concat=False, **kwargs):
+	def __init__(self, input_dim1, input_dim2, output_dim, hid_dim,
+				 dropout=0., bias=False, act=tf.nn.relu,
+				 concat=False, **kwargs):
 		super(AttentionAggregator, self).__init__(**kwargs)
 
 		self.dropout = dropout
 		self.bias = bias
 		self.act = act
 		self.concat = concat
-		self.user_review_adj = user_review_adj
-		self.user_item_adj = user_item_adj
-		self.item_review_adj = item_review_adj
-		self.item_user_adj = item_user_adj
-		self.review_vecs = review_vecs
-		self.user_vecs = user_vecs
-		self.item_vecs = item_vecs
-		if name is not None:
-			name = '/' + name
-		else:
-			name = ''
 
-		with tf.variable_scope(self.name + name + '_vars'):
+		self.user_weights = self.add_weight('user_weights', [input_dim1, hid_dim], dtype=tf.float32)
+		self.item_weights = self.add_weight('item_weights', [input_dim2, hid_dim], dtype=tf.float32)
+		self.concate_user_weights = self.add_weight('concate_user_weights', [hid_dim, output_dim], dtype=tf.float32)
+		self.concate_item_weights = self.add_weight('concate_item_weights', [hid_dim, output_dim], dtype=tf.float32)
 
-			self.vars['user_weights'] = glorot([input_dim1, hid_dim],
-											   name='user_weights')
-			self.vars['item_weights'] = glorot([input_dim2, hid_dim],
-											   name='item_weights')
-			self.vars['concate_user_weights'] = glorot([hid_dim, output_dim],
-													   name='user_weights')
-			self.vars['concate_item_weights'] = glorot([hid_dim, output_dim],
-													   name='item_weights')
-
-			if self.bias:
-				self.vars['bias'] = zeros([self.output_dim], name='bias')
-
-		if self.logging:
-			self._log_vars()
+		if self.bias:
+			self.user_bias = self.add_weight('user_bias', [self.output_dim], dtype=tf.float32)
+			self.item_bias = self.add_weight('item_bias', [self.output_dim], dtype=tf.float32)
 
 		self.input_dim1 = input_dim1
 		self.input_dim2 = input_dim2
 		self.output_dim = output_dim
 
-	def _call(self, inputs):
+	def __call__(self, inputs):
+		adj_list, features = inputs
 
-		review_vecs = tf.nn.dropout(self.review_vecs, 1 - self.dropout)
-		user_vecs = tf.nn.dropout(self.user_vecs, 1 - self.dropout)
-		item_vecs = tf.nn.dropout(self.item_vecs, 1 - self.dropout)
+		review_vecs = tf.nn.dropout(features[0], self.dropout)
+		user_vecs = tf.nn.dropout(features[1], self.dropout)
+		item_vecs = tf.nn.dropout(features[2], self.dropout)
 
 		# num_samples = self.adj_info[4]
 
 		# neighbor sample
-		ur = tf.nn.embedding_lookup(review_vecs, tf.cast(self.user_review_adj, dtype=tf.int32))
-		ur = tf.transpose(tf.random_shuffle(tf.transpose(ur)))
+		ur = tf.nn.embedding_lookup(review_vecs, tf.cast(adj_list[0], dtype=tf.int32))
+		ur = tf.transpose(tf.random.shuffle(tf.transpose(ur)))
 		# ur = tf.slice(ur, [0, 0], [-1, num_samples])
 
-		ri = tf.nn.embedding_lookup(item_vecs, tf.cast(self.user_item_adj, dtype=tf.int32))
-		ri = tf.transpose(tf.random_shuffle(tf.transpose(ri)))
+		ri = tf.nn.embedding_lookup(item_vecs, tf.cast(adj_list[1], dtype=tf.int32))
+		ri = tf.transpose(tf.random.shuffle(tf.transpose(ri)))
 		# ri = tf.slice(ri, [0, 0], [-1, num_samples])
 
-		ir = tf.nn.embedding_lookup(review_vecs, tf.cast(self.item_review_adj, dtype=tf.int32))
-		ir = tf.transpose(tf.random_shuffle(tf.transpose(ir)))
+		ir = tf.nn.embedding_lookup(review_vecs, tf.cast(adj_list[2], dtype=tf.int32))
+		ir = tf.transpose(tf.random.shuffle(tf.transpose(ir)))
 		# ir = tf.slice(ir, [0, 0], [-1, num_samples])
 
-		ru = tf.nn.embedding_lookup(user_vecs, tf.cast(self.item_user_adj, dtype=tf.int32))
-		ru = tf.transpose(tf.random_shuffle(tf.transpose(ru)))
+		ru = tf.nn.embedding_lookup(user_vecs, tf.cast(adj_list[3], dtype=tf.int32))
+		ru = tf.transpose(tf.random.shuffle(tf.transpose(ru)))
 		# ru = tf.slice(ru, [0, 0], [-1, num_samples])
 
 		concate_user_vecs = tf.concat([ur, ri], axis=2)
@@ -442,21 +399,21 @@ class AttentionAggregator(Layer):
 																		   mask=None)
 
 		# [nodes] x [out_dim]
-		user_output = tf.matmul(concate_user_vecs, self.vars['user_weights'])
-		item_output = tf.matmul(concate_item_vecs, self.vars['item_weights'])
+		user_output = dot(concate_user_vecs, self.user_weights, sparse=False)
+		item_output = dot(concate_item_vecs, self.item_weights, sparse=False)
 
 		# bias
 		if self.bias:
-			user_output += self.vars['bias']
-			item_output += self.vars['bias']
+			user_output += self.user_bias
+			item_output += self.item_bias
 
 		user_output = self.act(user_output)
 		item_output = self.act(item_output)
 
 		#  Combination
 		if self.concat:
-			user_output = tf.matmul(user_output, self.vars['concate_user_weights'])
-			item_output = tf.matmul(item_output, self.vars['concate_item_weights'])
+			user_output = dot(user_output, self.concate_user_weights, sparse=False)
+			item_output = dot(item_output, self.concate_item_weights, sparse=False)
 
 			user_output = tf.concat([user_vecs, user_output], axis=1)
 			item_output = tf.concat([item_vecs, item_output], axis=1)
@@ -464,41 +421,26 @@ class AttentionAggregator(Layer):
 		return user_output, item_output
 
 
-class GASConcatenation(Layer):
+class GASConcatenation(layers.Layer):
 	"""GCN-based Anti-Spam(GAS) layer for concatenation of comment embedding learned by GCN from the Comment Graph
 	 and other embeddings learned in previous operations.
 	 """
 
-	def __init__(self, review_item_adj, review_user_adj,
-				 review_vecs, item_vecs, user_vecs, homo_vecs, name=None, **kwargs):
+	def __init__(self, **kwargs):
 		super(GASConcatenation, self).__init__(**kwargs)
 
-		self.review_item_adj = review_item_adj
-		self.review_user_adj = review_user_adj
-		self.review_vecs = review_vecs
-		self.user_vecs = user_vecs
-		self.item_vecs = item_vecs
-		self.homo_vecs = homo_vecs
-
-		if name is not None:
-			name = '/' + name
-		else:
-			name = ''
-
-		if self.logging:
-			self._log_vars()
-
-	def _call(self, inputs):
+	def __call__(self, inputs):
+		adj_list, concat_vecs = inputs
 		# neighbor sample
-		ri = tf.nn.embedding_lookup(self.item_vecs, tf.cast(self.review_item_adj, dtype=tf.int32))
-		# ri = tf.transpose(tf.random_shuffle(tf.transpose(ri)))
+		ri = tf.nn.embedding_lookup(concat_vecs[2], tf.cast(adj_list[5], dtype=tf.int32))
+		# ri = tf.transpose(tf.random.shuffle(tf.transpose(ri)))
 		# ir = tf.slice(ir, [0, 0], [-1, num_samples])
 
-		ru = tf.nn.embedding_lookup(self.user_vecs, tf.cast(self.review_user_adj, dtype=tf.int32))
-		# ru = tf.transpose(tf.random_shuffle(tf.transpose(ru)))
+		ru = tf.nn.embedding_lookup(concat_vecs[1], tf.cast(adj_list[4], dtype=tf.int32))
+		# ru = tf.transpose(tf.random.shuffle(tf.transpose(ru)))
 		# ru = tf.slice(ru, [0, 0], [-1, num_samples])
 
-		concate_vecs = tf.concat([ri, self.review_vecs, ru, self.homo_vecs], axis=1)
+		concate_vecs = tf.concat([ri, concat_vecs[0], ru, concat_vecs[3]], axis=1)
 		return concate_vecs
 
 
@@ -507,17 +449,17 @@ class GEMLayer(layers.Layer):
 	paper 'Heterogeneous Graph Neural Networks for Malicious Account Detection.'
 	"""
 
-	def __init__(self, nodes_num, input_dim, output_dim, device_num, is_sparse_inputs=False, **kwargs):
+	def __init__(self, nodes_num, input_dim, output_dim,  device_num,  **kwargs):
 		super(GEMLayer, self).__init__(**kwargs)
 
 		self.nodes_num = nodes_num
 		self.input_dim = input_dim
 		self.output_dim = output_dim
 		self.devices_num = device_num
-		self.is_sparse_inputs = is_sparse_inputs
-		self.W = self.add_weight('weight', [input_dim, output_dim], dtype=tf.float32)
-		self.V = self.add_weight('V', [output_dim, output_dim], dtype=tf.float32)
-		self.alpha = self.add_weight('alpha', [self.devices_num, 1], dtype=tf.float32)
+		self.W = self.add_variable('weight', [input_dim, output_dim], dtype='double')
+		self.V = self.add_variable('V',[output_dim, output_dim], dtype='double')
+		self.alpha = self.add_variable('V', [self.devices_num, 1], dtype='double')
+
 
 	def __call__(self, inputs):
 		"""
@@ -525,19 +467,17 @@ class GEMLayer(layers.Layer):
 		support_ means a list of the sparse adjacency matrix
 		"""
 		x, support_, h = inputs
-		h1 = dot(x, self.W, sparse=True)
+		h1 = tf.matmul(x, self.W)
 		h2 = []
-
 		for d in range(self.devices_num):
-			ahv = dot(dot(support_[d], h, sparse=True), self.V, sparse=False)
+			ahv = tf.matmul(tf.matmul(support_[d], h), self.V)
 			h2.append(ahv)
-
 		h2 = tf.concat(h2, 0)
 		h2 = tf.reshape(h2, [self.devices_num, self.nodes_num * self.output_dim])
 		h2 = tf.transpose(h2, [1, 0])
 		h2 = tf.reshape(tf.matmul(h2, tf.nn.softmax(self.alpha)), [self.nodes_num, self.output_dim])
 
-		return tf.nn.relu(h1 + h2)
+		return tf.nn.sigmoid(h1 + h2)
 
 
 class GAT(Layer):
@@ -646,3 +586,7 @@ class GeniePathLayer(Layer):
 	#     x, (h, c) = self.depth_forward(x, h, c)
 	#     x = x[0]
 	#     return x, (h, c)
+
+
+
+

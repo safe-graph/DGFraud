@@ -7,10 +7,12 @@ import os
 import sys
 import argparse
 from tqdm import tqdm
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 
 import numpy as np
-np.seterr(divide='ignore',invalid='ignore')
+
+np.seterr(divide='ignore', invalid='ignore')
 import tensorflow as tf
 import collections
 from sklearn.metrics import f1_score, accuracy_score
@@ -26,13 +28,14 @@ parser.add_argument('--epochs', type=int, default=5, help='number of epochs to t
 parser.add_argument('--batch_size', type=int, default=512, help='batch size')
 parser.add_argument('--train_size', type=float, default=0.8, help='training set percentage')
 parser.add_argument('--lr', type=float, default=0.5, help='learning rate')
-parser.add_argument('--nhid', type=int, default=128, help='number of hidden units in GCN')
+parser.add_argument('--nhid', type=int, default=128, help='number of hidden units')
 parser.add_argument('--sample_sizes', type=list, default=[5, 5], help='number of samples for each layer')
 args = parser.parse_args()
 
 # set seed
 np.random.seed(args.seed)
 tf.random.set_seed(args.seed)
+
 
 def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list, num_classes: int, args):
 	train_nodes = masks[0]
@@ -45,7 +48,7 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 		ix = 0
 		np.random.shuffle(nodes_for_epoch)
 		while len(nodes_for_epoch) > ix + batch_size:
-			mini_batch_nodes = nodes_for_epoch[ix:ix+batch_size]
+			mini_batch_nodes = nodes_for_epoch[ix:ix + batch_size]
 			batch = build_batch(mini_batch_nodes, neigh_dict, args.sample_sizes)
 			labels = all_labels[mini_batch_nodes]
 			ix += batch_size
@@ -70,7 +73,7 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 			grads = tape.gradient(loss, model.trainable_weights)
 			optimizer.apply_gradients(zip(grads, model.trainable_weights))
 			print(f" loss: {loss.numpy():.4f}, acc: {acc:.4f}")
-		
+
 		# validation
 		print("Validating...")
 		val_results = model(build_batch(val_nodes, neigh_dict, args.sample_sizes))
@@ -97,7 +100,7 @@ def build_batch(nodes, neigh_dict, sample_sizes):
 		"dstsrc2dsts": list of dstsrc2dst matrices from last to first layer
 		"dif_mats": list of dif_mat matrices from last to first layer
 	"""
-		
+
 	dst_nodes = [nodes]
 	dstsrc2dsts = []
 	dstsrc2srcs = []
@@ -107,25 +110,24 @@ def build_batch(nodes, neigh_dict, sample_sizes):
 
 	for sample_size in reversed(sample_sizes):
 		ds, d2s, d2d, dm = _compute_diffusion_matrix(dst_nodes[-1],
-													neigh_dict,
-													sample_size,
-													max_node_id,
-													)
+													 neigh_dict,
+													 sample_size,
+													 max_node_id,
+													 )
 		dst_nodes.append(ds)
 		dstsrc2srcs.append(d2s)
 		dstsrc2dsts.append(d2d)
 		dif_mats.append(dm)
 
 	src_nodes = dst_nodes.pop()
-		
+
 	MiniBatchFields = ["src_nodes", "dstsrc2srcs", "dstsrc2dsts", "dif_mats"]
-	MiniBatch = collections.namedtuple ("MiniBatch", MiniBatchFields)
+	MiniBatch = collections.namedtuple("MiniBatch", MiniBatchFields)
 
 	return MiniBatch(src_nodes, dstsrc2srcs, dstsrc2dsts, dif_mats)
 
 
 def _compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id):
-
 	def sample(ns):
 		return np.random.choice(ns, min(len(ns), sample_size), replace=False)
 
@@ -155,15 +157,18 @@ def _compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id):
 
 if __name__ == "__main__":
 	# load the data
-	adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_yelp(meta=False, train_size=args.train_size)
+	adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_yelp(meta=False,
+																				  train_size=args.train_size)
 
 	num_classes = len(set(y))
 	label = np.array([y]).T
 
+	# dou: combine following functions with preprocess_feature() in utils.py
 	features = normalize_feature(features)
 	features = np.array(features.todense())
 
 	neigh_dict = collections.defaultdict(list)
+	# delete the following for loop
 	for i in range(len(y)):
 		neigh_dict[i] = []
 	for net in adj_list:

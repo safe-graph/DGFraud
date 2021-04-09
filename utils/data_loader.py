@@ -1,14 +1,11 @@
-
+import numpy as np
+from sklearn.model_selection import train_test_split
+import scipy.io as sio
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '..')))
-
-import numpy as np
-import scipy.io as sio
-import zipfile
-from sklearn.model_selection import train_test_split
-
 from utils.utils import pad_adjlist
+import zipfile
 
 
 # zip_src = '../dataset/DBLP4057_GAT_with_idx_tra200_val_800.zip'
@@ -23,7 +20,7 @@ def unzip_file(zip_src, dst_dir):
 		print('Zip Error.')
 
 
-def load_data_dblp(path='dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', train_size=0.8, meta=True):
+def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', train_size=0.8, meta=True):
 	data = sio.loadmat(path)
 	truelabels, features = data['label'], data['features'].astype(float)
 	N = features.shape[0]
@@ -41,7 +38,7 @@ def load_data_dblp(path='dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', trai
 	return rownetworks, features, X_train, y_train, X_val, y_val, X_test, y_test, np.array(y)
 
 
-def load_data_yelp(path='../../dataset/YelpChi.mat', train_size=0.8, meta=True):
+def load_data_yelp(path='dataset/YelpChi.mat', train_size=0.8, meta=True):
 	data = sio.loadmat(path)
 	truelabels, features = data['label'], data['features'].astype(float)
 	truelabels = truelabels.tolist()[0]
@@ -135,7 +132,7 @@ def load_example_gem():
 	return rownetworks, features, X_train, y_train, X_test, y_test
 
 
-def load_data_gas():
+def load_data_gas(train_size=0.8):
 	# example data for GAS
 	# construct U-E-I network
 	user_review_adj = [[0, 1], [2], [3], [5], [4, 6]]
@@ -181,9 +178,12 @@ def load_data_gas():
 
 	adjs = [user_review_adj, user_item_adj, item_review_adj, item_user_adj, review_user_adj, review_item_adj, homo_adj]
 
-	y = np.array([[0, 1], [1, 0], [1, 0], [0, 1], [1, 0], [1, 0], [0, 1], [1, 0]])
+	y = np.array([[0, 1], [1, 0], [1, 0], [0, 1], [1, 0], [1, 0], [0, 1]])
 	index = range(len(y))
-	X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
+	X_train, X_val, y_train, y_val = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
 														shuffle=True)
+	# dou: train val test needs to be split twice
+	# dou: you can only keep the training and testing and discard the validation set
 
-	return adjs, features, X_train, y_train, X_test, y_test
+	return adjs, features, X_train, y_train, X_val, y
+
