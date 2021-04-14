@@ -30,11 +30,11 @@ def normalize_adj(adj):
     """
     Symmetrically normalize adjacency matrix
     """
-    adj = sp.coo_matrix(adj)  # coo_matrix是一个定死的稀疏矩阵，其中的值不支持操作
-    rowsum = np.array(adj.sum(1))  # rowsum是一个列表，列表里每个元素是行的和。
-    d_inv_sqrt = np.power(rowsum, -0.5).flatten()  # rowsum取根号再取倒数再拉长
+    adj = sp.coo_matrix(adj)
+    rowsum = np.array(adj.sum(1))
+    d_inv_sqrt = np.power(rowsum, -0.5).flatten()
     d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.
-    d_mat_inv_sqrt = sp.diags(d_inv_sqrt)  # 构造一个稀疏对角矩阵，对角线上的值是r_inv上的值
+    d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
     return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).tocoo()
 
 
@@ -51,12 +51,12 @@ def preprocess_feature(features):
     Row-normalize feature matrix and convert to tuple representation
     """
 
-    features = sp.lil_matrix(features)  # 将feature变成了稀疏矩阵
-    rowsum = np.array(features.sum(1))  # rowsum是一个列表，列表里每个元素是行的和。
-    r_inv = np.power(rowsum, -1).flatten()  # np.power(rowsum, -1)表示rowsum中每个元素给它变成倒数,.flatten()表示再把它折叠成一个一维的数组
-    r_inv[np.isinf(r_inv)] = 0.  # 实际上没做任何事，np.isinf()的作用是逐个测试元素是否为正无穷大或者负无穷大，如果是就把它变成0.
-    r_mat_inv = sp.diags(r_inv)  # 构造一个稀疏对角矩阵，对角线上的值是r_inv上的值
-    features = r_mat_inv.dot(features)  # feature还是原来的稀疏矩阵，不过矩阵上的值变成了原来对应行和的倒数
+    features = sp.lil_matrix(features)
+    rowsum = np.array(features.sum(1))
+    r_inv = np.power(rowsum, -1).flatten()
+    r_inv[np.isinf(r_inv)] = 0.
+    r_mat_inv = sp.diags(r_inv)
+    features = r_mat_inv.dot(features)
 
     return sparse_to_tuple(features)
 
