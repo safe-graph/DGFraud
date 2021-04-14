@@ -21,7 +21,7 @@ def unzip_file(zip_src, dst_dir):
         print('Zip Error.')
 
 
-def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', train_size=0.8, meta=True):
+def load_data_dblp(path='dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat', train_size=0.8, meta=True):
     data = sio.loadmat(path)
     truelabels, features = data['label'], data['features'].astype(float)
     N = features.shape[0]
@@ -168,4 +168,4 @@ def load_data_gas():
 
     X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.4, random_state=48,
                                                         shuffle=True)
-    return adjs, features, X_train, y_train, y
+    return adjs, features, X_train, X_test, y
