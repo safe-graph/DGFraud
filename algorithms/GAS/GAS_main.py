@@ -20,7 +20,7 @@ from utils.utils import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=123, help='Random seed.')
 parser.add_argument('--dataset_str', type=str, default='example', help="['dblp','example']")
-parser.add_argument('--epoch_num', type=int, default=1, help='Number of epochs to train.')
+parser.add_argument('--epoch_num', type=int, default=30, help='Number of epochs to train.')
 parser.add_argument('--batch_size', type=int, default=1000)
 parser.add_argument('--momentum', type=int, default=0.9)
 parser.add_argument('--lr', default=0.001, help='learning rate')
@@ -51,6 +51,7 @@ def main(adj_list: list, r_support: list, features: tf.Tensor, r_feature: tf.Spa
     for epoch in range(args.epoch_num):
         with tf.GradientTape() as tape:
             train_loss, train_acc = model([adj_list, r_support, features, r_feature, label, masks[0]])
+            print(f"train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f}")
 
         grads = tape.gradient(train_loss, model.trainable_variables)
         optimizer.apply_gradients(zip(grads, model.trainable_variables))
