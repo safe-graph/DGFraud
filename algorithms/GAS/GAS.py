@@ -69,20 +69,18 @@ class GAS(keras.Model):
             dtype=tf.float32), trainable=True)
 
     def __call__(self, inputs):
-        support, r_support, features, r_features, label, idx_mask = inputs
+        support, r_support, features, r_feature, label, idx_mask = inputs
 
         # forward propagation
         h_r = self.r_agg_layer((support, features))
         h_u, h_i = self.iu_agg_layer((support, features))
-        outputs = [r_features]
-        p_e = self.r_gcn_layer((outputs[-1], r_support), training=True)
+        p_e = self.r_gcn_layer((r_feature, r_support), training=True)
         concat_vecs = [h_r, h_u, h_i, p_e]
         gas_out = self.concat_layer((support, concat_vecs))
 
         # get masked data
         masked_data = tf.gather(gas_out, idx_mask)
         masked_label = tf.gather(label, idx_mask)
-
         logits = tf.nn.softmax(tf.matmul(masked_data, self.u))
         loss = -tf.reduce_sum(tf.math.log(tf.nn.sigmoid(masked_label * logits)))
         acc = accuracy(logits, masked_label)
