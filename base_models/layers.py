@@ -170,12 +170,12 @@ class AttentionLayer(layers.Layer):
                   multi_view=True):
         if multi_view:
             inputs = tf.expand_dims(inputs, 0)
-        hidden_size = inputs.shape[-1].value
+        hidden_size = inputs.shape[-1]
 
         # Trainable parameters
-        w_omega = tf.Variable(tf.random_normal([hidden_size, attention_size], stddev=0.1))
-        b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
-        u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1))
+        w_omega = tf.Variable(tf.random.uniform([hidden_size, attention_size]))
+        b_omega = tf.Variable(tf.random.uniform([attention_size]))
+        u_omega = tf.Variable(tf.random.uniform([attention_size]))
 
         v = tf.tensordot(inputs, w_omega, axes=1)
         if bias is True:
@@ -252,7 +252,6 @@ class AttentionLayer(layers.Layer):
 
         if mask is not None:
             scaled_attention += 1
-
         weights = tf.nn.softmax(scaled_attention, axis=-1)
         output = tf.matmul(weights, v)
         return output, weights
@@ -273,6 +272,7 @@ class ConcatenationAggregator(layers.Layer):
         self.act = act
         self.concat = concat
         self.con_agg_weights = self.add_weight('con_agg_weights', [input_dim, output_dim], dtype=tf.float32)
+        # con_agg_weights是一个(19,64)的权重矩阵
 
     def __call__(self, inputs):
         adj_list, features = inputs
@@ -408,7 +408,6 @@ class GASConcatenation(layers.Layer):
         ru = tf.nn.embedding_lookup(concat_vecs[1], tf.cast(adj_list[4], dtype=tf.int32))
         # ru = tf.transpose(tf.random.shuffle(tf.transpose(ru)))
         # ru = tf.slice(ru, [0, 0], [-1, num_samples])
-
         concate_vecs = tf.concat([ri, concat_vecs[0], ru, concat_vecs[3]], axis=1)
         return concate_vecs
 
