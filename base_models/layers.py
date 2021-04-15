@@ -512,7 +512,7 @@ class GEMLayer(layers.Layer):
 		return tf.nn.relu(h1 + h2)
 
 
-class GAT(tf.keras.layers.Layer):
+class GAT(layers.Layer):
 	def __init__(self, GAT_output_dim, nb_nodes=None, in_drop=0.0, coef_drop=0.0, activation=tf.nn.elu, residual=False):
 		super(GAT, self).__init__()
 		self.activation = activation
@@ -579,7 +579,7 @@ class GAT(tf.keras.layers.Layer):
 	# 	return logits
 
 
-class GeniePathLayer(Layer):
+class GeniePathLayer(layers.Layer):
 	"""This layer equals to the Adaptive Path Layer in
 	paper 'GeniePath: Graph Neural Networks with Adaptive Receptive Paths.'
 	The code is adapted from shawnwang-tech/GeniePath-pytorch
