@@ -62,6 +62,7 @@ def main(support: list, features: tf.SparseTensor, label: tf.Tensor, masks: list
 
 if __name__ == "__main__":
     # load the data
+    # dou: should load the dblp data with metapaths
     adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_dblp(meta=False, train_size=args.train_size)
     args.nodes = features.shape[0]
 
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     train_mask = tf.convert_to_tensor(sample_mask(idx_train, y.shape[0]))
     val_mask = tf.convert_to_tensor(sample_mask(idx_val, y.shape[0]))
     test_mask = tf.convert_to_tensor(sample_mask(idx_test, y.shape[0]))
-    label = tf.convert_to_tensor(y)
+    label = tf.convert_to_tensor(y, dtype=tf.float32)
 
     # get sparse tuples
     features = preprocess_feature(features)
