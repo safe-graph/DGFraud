@@ -17,13 +17,14 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 import tensorflow as tf
+from tensorflow import keras
 from base_models.layers import GeniePathLayer
 from algorithms.base_algorithm import Algorithm
 from utils import utils
 from utils.metrics import *
 
 
-class GeniePath(Algorithm):
+class GeniePath(keras.Model):
 
     def __init__(self, input_dim, output_dim, args):
         super().__init__()
