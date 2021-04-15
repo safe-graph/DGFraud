@@ -84,6 +84,7 @@ if __name__ == "__main__":
     args.output_dim = y.shape[1]
     args.class_size = y.shape[1]
     args.train_size = len(idx_train)
+    # dou: delete the following variable
     args.device_num = len(adj_list)
 
     # features = preprocess_feature(features)
