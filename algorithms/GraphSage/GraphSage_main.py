@@ -58,7 +58,7 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 		labels = all_labels[mini_batch_nodes]
 		yield (batch, labels)
 
-	model = GraphSage(features, args.nhid, len(args.sample_sizes), num_classes)
+	model = GraphSage(features.shape[-1], args.nhid, len(args.sample_sizes), num_classes)
 	optimizer = tf.keras.optimizers.SGD(learning_rate=args.lr)
 	loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
@@ -67,7 +67,7 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 		minibatch_generator = generate_training_minibatch(train_nodes, labels, args.batch_size)
 		for inputs, inputs_labels in tqdm(minibatch_generator, total=len(train_nodes) / args.batch_size):
 			with tf.GradientTape() as tape:
-				predicted = model(inputs)
+				predicted = model(inputs, features)
 				loss = loss_fn(tf.convert_to_tensor(inputs_labels), predicted)
 				acc = accuracy_score(inputs_labels, predicted.numpy().argmax(axis=1))
 			grads = tape.gradient(loss, model.trainable_weights)
@@ -76,14 +76,14 @@ def main(neigh_dict: dict, features: np.ndarray, labels: np.ndarray, masks: list
 
 		# validation
 		print("Validating...")
-		val_results = model(build_batch(val_nodes, neigh_dict, args.sample_sizes))
+		val_results = model(build_batch(val_nodes, neigh_dict, args.sample_sizes), features)
 		loss = loss_fn(tf.convert_to_tensor(labels[val_nodes]), val_results)
 		val_acc = accuracy_score(labels[val_nodes], val_results.numpy().argmax(axis=1))
 		print(f" Epoch: {epoch:d}, loss: {loss.numpy():.4f}, acc: {acc:.4f}")
 
 	# testing
 	print("Testing...")
-	results = model(build_batch(test_nodes, neigh_dict, args.sample_sizes))
+	results = model(build_batch(test_nodes, neigh_dict, args.sample_sizes), features)
 	# score = f1_score(labels[test_nodes], results.numpy().argmax(axis=1), average="micro")
 	test_acc = accuracy_score(labels[test_nodes], results.numpy().argmax(axis=1))
 	print(f"Test acc: {test_acc:.4f}")
@@ -163,14 +163,10 @@ if __name__ == "__main__":
 	num_classes = len(set(y))
 	label = np.array([y]).T
 
-	# dou: combine following functions with preprocess_feature() in utils.py
-	features = normalize_feature(features)
+	features = preprocess_feature(features, to_tuple=False)
 	features = np.array(features.todense())
 
 	neigh_dict = collections.defaultdict(list)
-	# delete the following for loop
-	for i in range(len(y)):
-		neigh_dict[i] = []
 	for net in adj_list:
 		nodes1 = net.nonzero()[0]
 		nodes2 = net.nonzero()[1]

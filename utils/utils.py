@@ -45,18 +45,7 @@ def preprocess_adj(adj):
 	return sparse_to_tuple(adj_normalized)
 
 
-def normalize_feature(features):
-	"""
-	Row-normalize feature matrix
-	"""
-	rowsum = np.array(features.sum(1))
-	r_inv = np.power(rowsum, -1).flatten()
-	r_inv[np.isinf(r_inv)] = 0.
-	r_mat_inv = sp.diags(r_inv)
-	return r_mat_inv.dot(features)
-
-
-def preprocess_feature(features):
+def preprocess_feature(features, to_tuple=True):
 	"""
 	Row-normalize feature matrix and convert to tuple representation
 	"""
@@ -68,7 +57,10 @@ def preprocess_feature(features):
 	r_mat_inv = sp.diags(r_inv)
 	features = r_mat_inv.dot(features)
 
-	return sparse_to_tuple(features)
+	if to_tuple:
+		return sparse_to_tuple(features)
+	else:
+		return features
 
 
 # Construct feed dictionary for SemiGNN
