@@ -69,16 +69,17 @@ class Player2Vec(keras.Model):
                              trainable=True)
 
     def call(self, inputs, training=True):
-        support, x, label, mask = inputs
-
-        outputs = [x]
-        for layer in self.layers:
-            hidden = layer((outputs[-1], support), training)
-            outputs.append(hidden)
-        outputs = outputs[-1]
-
-        outputs = tf.reshape(outputs, [1, self.nodes * self.output_dim])
-        outputs = AttentionLayer.attention(inputs=outputs, attention_size=1, v_type='tanh')
+        supports, x, label, mask = inputs
+        outputs = []
+        for i in range(len(supports)):
+            output = [x]
+            for layer in self.layers:
+                hidden = layer((output[-1], supports[i]), training)
+                output.append(hidden)
+            output = output[-1]
+            outputs.append(output)
+        outputs = tf.reshape(outputs, [len(supports), self.nodes * self.output_dim])
+        outputs = AttentionLayer.attention(inputs=outputs, attention_size=len(supports), v_type='tanh')
         outputs = tf.reshape(outputs, [self.nodes, self.output_dim])
         # get masked data
         masked_data = tf.gather(outputs, mask)
