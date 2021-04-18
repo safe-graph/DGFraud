@@ -14,8 +14,8 @@ from tensorflow.keras import optimizers
 from tqdm import tqdm
 from utils.data_loader import *
 from utils.utils import *
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
