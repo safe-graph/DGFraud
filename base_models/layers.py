@@ -512,7 +512,7 @@ class GEMLayer(layers.Layer):
 		return tf.nn.relu(h1 + h2)
 
 
-class GAT(layers.Layer):
+class GAT(tf.keras.layers.Layer):
 	def __init__(self, GAT_output_dim, nb_nodes=None, in_drop=0.0, coef_drop=0.0, activation=tf.nn.elu, residual=False):
 		super(GAT, self).__init__()
 		self.activation = activation
@@ -526,66 +526,34 @@ class GAT(layers.Layer):
 		self.bias_zero = tf.Variable(tf.zeros(GAT_output_dim))
 
 	def __call__(self, seq, bias_mat):
-		# seq: 输入的节点特征
 		seq = self.in_dropout(seq)
-		# 使用 hidden_dim=8 个1维卷积，卷积核大小为1
-		# 每个卷积核的参数相当于邻居节点的权重
-		# 整个卷积的过程相当于公式中的 Wh
-		# seq_fts.shape: (num_graph, num_nodes, hidden_dim)
 		seq_fts = self.conv_no_bias(seq)
-		# 1x1 卷积可以理解为按hidden_dim这个通道进行加权求和，但参数共享
-		# 相当于单输出全连接层1
-		# f_1.shape: (num_graph, num_nodes, 1)
 		f_1 = self.conv_f1(seq_fts)
-		# 相当于单输出全连接层2
 		f_2 = self.conv_f2(seq_fts)
 
-		# 广播机制计算(num_graph,num_nodes,1)+(num_graph,1,num_nodes)
-		# logits.shape: (num_graph, num_nodes, num_nodes)
-		# 相当于计算了所有节点的 [e_ij]
 		logits = f_1 + tf.transpose(f_2, [0, 2, 1])
-		# 得到邻居节点的注意力系数：[alpha_ij]
-		# bias_mat 中非邻居节点为极大的负数，softmax之后变为0
-		# coefs.shape: (num_graph, num_nodes, num_nodes)
 		coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
 		# dropout
 		coefs = self.coef_dropout(coefs)
 		seq_fts = self.in_dropout(seq_fts)
-		# 计算：[alpha_ij] x Wh
-		# vals.shape: (num_graph, num_nodes, num_nodes)
 		vals = tf.matmul(coefs, seq_fts)
 		vals = tf.cast(vals, dtype=tf.float32)
-		# 最终结果再加上一个 bias
 		ret = vals + self.bias_zero
-		# 残差
 		if self.residual:
 			if seq.shape[-1] != ret.shape[-1]:
 				ret = ret + self.conv_residual(seq)
 			else:
 				ret = ret + seq
-		# 返回 h' = σ([alpha_ij] x Wh)
-		# shape: (num_graph, num_nodes, hidden_dim)
 		return self.activation(ret)
 
 
-	# def inference(self, inputs):
-	# 	seq, bias_mat = inputs
-	# 	out = []
-	# 	# for i in range(n_heads[-1]):
-	# 	for i in range(self.n_heads):
-	# 		out.append(self.attn_head(seq, bias_mat=bias_mat, out_sz=self.dim, activation=tf.nn.elu,
-	# 							in_drop=self.ffd_drop, coef_drop=self.attn_drop, residual=False))
-	# 	logits = tf.add_n(out) / self.n_heads
-	# 	return logits
-
-
-class GeniePathLayer(layers.Layer):
+class GeniePathLayer(keras.Model):
 	"""This layer equals to the Adaptive Path Layer in
 	paper 'GeniePath: Graph Neural Networks with Adaptive Receptive Paths.'
 	The code is adapted from shawnwang-tech/GeniePath-pytorch
 	"""
 
-	def __init__(self, nodes_num, input_dim, GAT_output_dim, lstm_hidden, GAT_heads=1,**kwargs):
+	def __init__(self, nodes_num, input_dim, GAT_output_dim, lstm_hidden, GAT_heads=1, **kwargs):
 		super(GeniePathLayer, self).__init__(**kwargs)
 
 		self.nodes_num = nodes_num
@@ -594,8 +562,6 @@ class GeniePathLayer(layers.Layer):
 		self.GAT_heads = GAT_heads
 		self.lstm_hideen = lstm_hidden
 
-
-
 		# GAT initialization
 		self.GAT = GAT(self.GAT_output_dim)
 
@@ -603,25 +569,6 @@ class GeniePathLayer(layers.Layer):
 		cell = tf.keras.layers.LSTMCell(self.lstm_hideen)
 		self.rnn = tf.keras.layers.RNN(
 			cell, return_sequences=True)
-
-		# self.trainable_variables = []
-
-	# def depth_forward(self, x, h, c):
-	# 	cell = tf.nn.rnn_cell.LSTMCell(num_units=h, state_is_tuple=True)
-	# 	x, (c, h) = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
-	# 	return x, (c, h)
-	#
-	#
-	# def breadth_forward(self, x, bias_in):
-	# 	x = tf.tanh(GAT(self.dim, attn_drop=0, ffd_drop=0, bias_mat=bias_in, n_heads=self.heads).inference(x))
-	# 	return x
-	#
-	#
-	# def forward(self, x, bias_in, h, c):
-	# 	x = self.breadth_forward(x, bias_in)
-	# 	x, (h, c) = self.depth_forward(x, h, c)
-	# 	x = x[0]
-	# 	return x, (h, c)
 
 
 	def __call__(self, inputs):
@@ -638,9 +585,7 @@ class GeniePathLayer(layers.Layer):
 		# depth process
 		x = self.rnn(x)
 		x = x[0]
-		# self.trainable_variables.append(self.GAT.trainable_variables)
-		# self.trainable_variables.append(self.rnn.trainable_variables)
-		# self.trainable_variables = sum(self.trainable_variables, [])
+
 
 		return x
 
