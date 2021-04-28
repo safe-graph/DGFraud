@@ -199,8 +199,9 @@ class AttentionLayer(layers.Layer):
             return output, weights
 
     def node_attention(inputs, adj, return_weights=False):
-        hidden_size = inputs.shape[-1].value
-        H_v = tf.Variable(tf.random_normal([hidden_size, 1], stddev=0.1))
+
+        hidden_size = inputs.shape[-1]
+        H_v = tf.Variable(tf.random.normal([hidden_size, 1], stddev=0.1))
 
         # convert adj to sparse tensor
         zero = tf.constant(0, dtype=tf.float32)
@@ -210,12 +211,10 @@ class AttentionLayer(layers.Layer):
         adj = tf.SparseTensor(indices=indices,
                               values=values,
                               dense_shape=adj.shape)
+        v = tf.cast(adj, tf.float32) * tf.squeeze(tf.tensordot(inputs, H_v, axes=1))
 
-        with tf.name_scope('v'):
-            v = adj * tf.squeeze(tf.tensordot(inputs, H_v, axes=1))
-
-        weights = tf.sparse_softmax(v, name='alphas')  # [nodes,nodes]
-        output = tf.sparse_tensor_dense_matmul(weights, inputs)
+        weights = tf.sparse.softmax(v, name='alphas')  # [nodes,nodes]
+        output = tf.sparse.sparse_dense_matmul(weights, inputs)
 
         if not return_weights:
             return output
@@ -230,13 +229,12 @@ class AttentionLayer(layers.Layer):
             v = []
             for i in range(meta):
                 input = h[i]
-                v_i = tf.layers.dense(inputs=input, units=encoding[l], activation=tf.nn.relu)
+                v_i = tf.keras.layers.Dense(encoding[l])(input)
                 v.append(v_i)
             h = v
-
         h = tf.concat(h, 0)
-        h = tf.reshape(h, [meta, inputs[0].shape[0].value, encoding2])
-        phi = tf.Variable(tf.random_normal([encoding2, ], stddev=0.1))
+        h = tf.reshape(h, [meta, inputs[0].shape[0], encoding2])
+        phi = tf.Variable(tf.random.normal([encoding2, ], stddev=0.1))
         weights = tf.nn.softmax(h * phi, name='alphas')
         output = tf.reshape(h * weights, [1, inputs[0].shape[0] * encoding2 * meta])
 
@@ -272,7 +270,6 @@ class ConcatenationAggregator(layers.Layer):
         self.act = act
         self.concat = concat
         self.con_agg_weights = self.add_weight('con_agg_weights', [input_dim, output_dim], dtype=tf.float32)
-        # con_agg_weights是一个(19,64)的权重矩阵
 
     def __call__(self, inputs):
         adj_list, features = inputs
