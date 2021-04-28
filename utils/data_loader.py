@@ -50,8 +50,7 @@ def load_example_semi():
                          [0, 0, 0, 0, 1, 0, 1],
                          [1, 0, 1, 1, 0, 0, 0],
                          [0, 1, 0, 0, 1, 0, 0],
-                         [0, 0, 0, 0, 0, 1, 1]
-                         ])
+                         [0, 0, 0, 0, 0, 1, 1]])
     N = features.shape[0]
     # Here we use binary matrix as adjacency matrix, weighted matrix is acceptable as well
     rownetworks = [np.array([[1, 0, 0, 1, 0, 1, 1, 1],
@@ -75,7 +74,7 @@ def load_example_semi():
     X_train, X_test, y_train, y_test = train_test_split(index, y, stratify=y, test_size=0.2, random_state=48,
                                                         shuffle=True)  # test_size=0.25  batch——size=2
 
-    return rownetworks, features, X_train, y_train, X_test, y_test
+    return rownetworks, features, X_train, X_test, y
 
 
 def load_example_gem():
