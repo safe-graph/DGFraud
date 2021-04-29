@@ -17,7 +17,7 @@ import tensorflow as tf
 import collections
 from sklearn.metrics import f1_score, accuracy_score
 
-from GraphSage import GraphSage
+from GraphConsis import GraphConsis
 from utils.data_loader import *
 from utils.utils import *
 
@@ -30,6 +30,8 @@ parser.add_argument('--train_size', type=float, default=0.8, help='training set 
 parser.add_argument('--lr', type=float, default=0.5, help='learning rate')
 parser.add_argument('--nhid', type=int, default=128, help='number of hidden units')
 parser.add_argument('--sample_sizes', type=list, default=[5, 5], help='number of samples for each layer')
+parser.add_argument('--identity_dim', type=int, default=0, help='dimension of context embedding')
+parser.add_argument('--eps', type=float, default=0.001, help='consistency score threshold ε')
 args = parser.parse_args()
 
 # set seed
@@ -37,34 +39,34 @@ np.random.seed(args.seed)
 tf.random.set_seed(args.seed)
 
 
-def main(neigh_dict, features, labels, masks, num_classes, args):
+def main(neigh_dicts, features, labels, masks, num_classes, args):
 	train_nodes = masks[0]
 	val_nodes = masks[1]
 	test_nodes = masks[2]
 
 	# training
-	def generate_training_minibatch(nodes_for_training, all_labels, batch_size):
+	def generate_training_minibatch(nodes_for_training, all_labels, batch_size, features):
 		nodes_for_epoch = np.copy(nodes_for_training)
 		ix = 0
 		np.random.shuffle(nodes_for_epoch)
 		while len(nodes_for_epoch) > ix + batch_size:
 			mini_batch_nodes = nodes_for_epoch[ix:ix + batch_size]
-			batch = build_batch(mini_batch_nodes, neigh_dict, args.sample_sizes)
+			batch = build_batch(mini_batch_nodes, neigh_dicts, args.sample_sizes, features)
 			labels = all_labels[mini_batch_nodes]
 			ix += batch_size
 			yield (batch, labels)
 		mini_batch_nodes = nodes_for_epoch[ix:-1]
-		batch = build_batch(mini_batch_nodes, neigh_dict, args.sample_sizes)
+		batch = build_batch(mini_batch_nodes, neigh_dicts, args.sample_sizes, features)
 		labels = all_labels[mini_batch_nodes]
 		yield (batch, labels)
 
-	model = GraphSage(features.shape[-1], args.nhid, len(args.sample_sizes), num_classes)
+	model = GraphConsis(features.shape[-1], args.nhid, len(args.sample_sizes), num_classes, len(neigh_dicts))
 	optimizer = tf.keras.optimizers.SGD(learning_rate=args.lr)
 	loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
 	for epoch in range(args.epochs):
 		print(f"Epoch {epoch:d}: training...")
-		minibatch_generator = generate_training_minibatch(train_nodes, labels, args.batch_size)
+		minibatch_generator = generate_training_minibatch(train_nodes, labels, args.batch_size, features)
 		for inputs, inputs_labels in tqdm(minibatch_generator, total=len(train_nodes) / args.batch_size):
 			with tf.GradientTape() as tape:
 				predicted = model(inputs, features)
@@ -76,20 +78,20 @@ def main(neigh_dict, features, labels, masks, num_classes, args):
 
 		# validation
 		print("Validating...")
-		val_results = model(build_batch(val_nodes, neigh_dict, args.sample_sizes), features)
+		val_results = model(build_batch(val_nodes, neigh_dicts, args.sample_sizes, features), features)
 		loss = loss_fn(tf.convert_to_tensor(labels[val_nodes]), val_results)
 		val_acc = accuracy_score(labels[val_nodes], val_results.numpy().argmax(axis=1))
 		print(f" Epoch: {epoch:d}, loss: {loss.numpy():.4f}, acc: {val_acc:.4f}")
 
 	# testing
 	print("Testing...")
-	results = model(build_batch(test_nodes, neigh_dict, args.sample_sizes), features)
+	results = model(build_batch(test_nodes, neigh_dicts, args.sample_sizes, features), features)
 	# score = f1_score(labels[test_nodes], results.numpy().argmax(axis=1), average="micro")
 	test_acc = accuracy_score(labels[test_nodes], results.numpy().argmax(axis=1))
 	print(f"Test acc: {test_acc:.4f}")
 
 
-def build_batch(nodes, neigh_dict, sample_sizes):
+def build_batch(nodes, neigh_dicts, sample_sizes, features):
 	"""
 	:param [int] nodes: node ids
 	:param {node:[node]} neigh_dict: BIDIRECTIONAL adjacency matrix in dict
@@ -102,35 +104,51 @@ def build_batch(nodes, neigh_dict, sample_sizes):
 		"dif_mats": list of dif_mat matrices from last to first layer
 	"""
 
-	dst_nodes = [nodes]
-	dstsrc2dsts = []
-	dstsrc2srcs = []
-	dif_mats = []
+	output = []
+	for neigh_dict in neigh_dicts:
+		dst_nodes = [nodes]
+		dstsrc2dsts = []
+		dstsrc2srcs = []
+		dif_mats = []
 
-	max_node_id = max(list(neigh_dict.keys()))
+		max_node_id = max(list(neigh_dict.keys()))
 
-	for sample_size in reversed(sample_sizes):
-		ds, d2s, d2d, dm = compute_diffusion_matrix(dst_nodes[-1],
-													neigh_dict,
-													sample_size,
-													max_node_id,
-													)
-		dst_nodes.append(ds)
-		dstsrc2srcs.append(d2s)
-		dstsrc2dsts.append(d2d)
-		dif_mats.append(dm)
+		for sample_size in reversed(sample_sizes):
+			ds, d2s, d2d, dm = compute_diffusion_matrix(dst_nodes[-1],
+														neigh_dict,
+														sample_size,
+														max_node_id,
+														features
+														)
+			dst_nodes.append(ds)
+			dstsrc2srcs.append(d2s)
+			dstsrc2dsts.append(d2d)
+			dif_mats.append(dm)
 
-	src_nodes = dst_nodes.pop()
+		src_nodes = dst_nodes.pop()
 
-	MiniBatchFields = ["src_nodes", "dstsrc2srcs", "dstsrc2dsts", "dif_mats"]
-	MiniBatch = collections.namedtuple("MiniBatch", MiniBatchFields)
+		MiniBatchFields = ["src_nodes", "dstsrc2srcs", "dstsrc2dsts", "dif_mats"]
+		MiniBatch = collections.namedtuple("MiniBatch", MiniBatchFields)
+		output.append(MiniBatch(src_nodes, dstsrc2srcs, dstsrc2dsts, dif_mats))
 
-	return MiniBatch(src_nodes, dstsrc2srcs, dstsrc2dsts, dif_mats)
+	return output
 
 
-def compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id):
-	def sample(ns):
-		return np.random.choice(ns, min(len(ns), sample_size), replace=False)
+def compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id, features):
+	def calc_consistency_score(n, ns):
+		# Equation 3 in the paper
+		consis = tf.exp(-tf.pow(tf.norm(tf.tile([features[n]], [len(ns), 1]) - features[ns], axis=1), 2))
+		consis = tf.where(consis > args.eps, consis, 0)
+		return consis
+
+	def sample(n, ns):
+		if len(ns) == 0:
+			return []
+		consis = calc_consistency_score(n, ns)
+
+		# Equation 4 in the paper
+		prob = consis / tf.reduce_sum(consis)
+		return np.random.choice(ns, min(len(ns), sample_size), replace=False, p=prob)
 
 	def vectorize(ns):
 		v = np.zeros(max_node_id + 1, dtype=np.float32)
@@ -138,7 +156,7 @@ def compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id):
 		return v
 
 	# sample neighbors
-	adj_mat_full = np.stack([vectorize(sample(neigh_dict[n])) for n in dst_nodes])
+	adj_mat_full = np.stack([vectorize(sample(n, neigh_dict[n])) for n in dst_nodes])
 	nonzero_cols_mask = np.any(adj_mat_full.astype(np.bool), axis=0)
 
 	# compute diffusion matrix
@@ -158,8 +176,7 @@ def compute_diffusion_matrix(dst_nodes, neigh_dict, sample_size, max_node_id):
 
 if __name__ == "__main__":
 	# load the data
-	adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_yelp(meta=False,
-																				  train_size=args.train_size)
+	adj_list, features, idx_train, _, idx_val, _, idx_test, _, y = load_data_yelp(train_size=args.train_size)
 
 	num_classes = len(set(y))
 	label = np.array([y]).T
@@ -167,17 +184,18 @@ if __name__ == "__main__":
 	features = preprocess_feature(features, to_tuple=False)
 	features = np.array(features.todense())
 
-	neigh_dict = collections.defaultdict(list)
-	for i in range(len(y)):
-		neigh_dict[i] = []
+	# Equation 2 in the paper
+	features = np.concatenate((features, np.random.rand(features.shape[0], args.identity_dim)), axis=1)
 
-	# merge all relations into single graph
+	neigh_dicts = []
 	for net in adj_list:
+		neigh_dict = {}
+		for i in range(len(y)):
+			neigh_dict[i] = []
 		nodes1 = net.nonzero()[0]
 		nodes2 = net.nonzero()[1]
 		for node1, node2 in zip(nodes1, nodes2):
 			neigh_dict[node1].append(node2)
+		neigh_dicts.append({k: np.array(v, dtype=np.int64) for k, v in neigh_dict.items()})
 
-	neigh_dict = {k: np.array(v, dtype=np.int64) for k, v in neigh_dict.items()}
-
-	main(neigh_dict, features, label, [idx_train, idx_val, idx_test], num_classes, args)
+	main(neigh_dicts, features, label, [idx_train, idx_val, idx_test], num_classes, args)

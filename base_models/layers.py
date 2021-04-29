@@ -259,7 +259,10 @@ class AttentionLayer(layers.Layer):
 		return output, weights
 
 
-class MeanAggregator(layers.Layer):
+class SageMeanAggregator(layers.Layer):
+	""" GraphSAGE Mean Aggregation Layer
+	"""
+
 	def __init__(self, src_dim, dst_dim, activ=True, **kwargs):
 		"""
 		:param int src_dim: input dimension
@@ -287,6 +290,37 @@ class MeanAggregator(layers.Layer):
 		concatenated_features = tf.concat([aggregated_features, dst_features], 1)
 		x = tf.matmul(concatenated_features, self.w)
 		return self.activ_fn(x)
+
+
+class ConsisMeanAggregator(SageMeanAggregator):
+	""" GraphConsis Mean Aggregation Layer Inherited SageMeanAggregator
+	"""
+
+	def __init__(self, src_dim, dst_dim, **kwargs):
+		"""
+		:param int src_dim: input dimension
+		:param int dst_dim: output dimension
+		"""
+		super().__init__(src_dim, dst_dim, activ=False, **kwargs)
+
+
+	def __call__(self, dstsrc_features, dstsrc2src, dstsrc2dst, dif_mat, relation_vec, attention_vec):
+		"""
+		:param tensor dstsrc_features: the embedding from the previous layer
+		:param tensor dstsrc2dst: 1d index mapping (prepraed by minibatch generator)
+		:param tensor dstsrc2src: 1d index mapping (prepraed by minibatch generator)
+		:param tensor dif_mat: 2d diffusion matrix (prepraed by minibatch generator)
+		:param tensor relation_vec: 1d corresponding relation vector
+		:param tensor attention_vec: 1d layers shared attention weights vector
+		"""
+		# Equation 5,6 in the paper
+		x = super().__call__(dstsrc_features, dstsrc2src, dstsrc2dst, dif_mat)
+		relation_features = tf.tile([relation_vec], [x.shape[0], 1])
+		alpha = tf.matmul(tf.concat([x, relation_features], 1), attention_vec)
+		alpha = tf.tile(alpha, [1, x.shape[-1]])
+		x = tf.multiply(alpha, x)
+
+		return x
 
 
 class ConcatenationAggregator(layers.Layer):

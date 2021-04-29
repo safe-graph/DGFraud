@@ -38,7 +38,7 @@ def load_data_dblp(path='../../dataset/DBLP4057_GAT_with_idx_tra200_val_800.mat'
 	return rownetworks, features, X_train, y_train, X_val, y_val, X_test, y_test, np.array(y)
 
 
-def load_data_yelp(path='dataset/YelpChi.mat', train_size=0.8, meta=True):
+def load_data_yelp(path='../../dataset/YelpChi.mat', train_size=0.8, meta=True):
 	data = sio.loadmat(path)
 	truelabels, features = data['label'], data['features'].astype(float)
 	truelabels = truelabels.tolist()[0]
