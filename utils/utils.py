@@ -2,6 +2,7 @@ import random
 import scipy.io as sio
 import scipy.sparse as sp
 import numpy as np
+from numpy import int32
 
 
 def sparse_to_tuple(sparse_mx):
@@ -213,7 +214,7 @@ def get_negative_sampling(pairs, adj_nodelist, Q=3, node_sampling='atlas'):
             u_i.append(pairs[index][0])
             u_j.append(negative_node)
             graph_label.append(-1)
-    graph_label = np.array(graph_label)
+    graph_label = np.array(graph_label, dtype=int32)
     graph_label = graph_label.reshape(graph_label.shape[0], 1)
     return u_i, u_j, graph_label
 
