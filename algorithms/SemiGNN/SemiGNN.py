@@ -40,6 +40,8 @@ class SemiGNN(keras.Model):
 
         # init embedding
         self.x_init = tf.keras.initializers.GlorotUniform()
+        self.emb = tf.Variable(initial_value=self.x_init(shape=(self.nodes, self.init_emb_size), dtype=tf.float32),
+                              trainable=True)
         self.u = tf.Variable(initial_value=self.x_init(shape=(self.semi_encoding3, self.class_size), dtype=tf.float32),
                             trainable=True)
 
@@ -48,10 +50,8 @@ class SemiGNN(keras.Model):
 
         h1 = []
         for i in range(self.meta):
-            emb = tf.Variable(initial_value=self.x_init(shape=(self.nodes, self.init_emb_size), dtype=tf.float32),
-                              trainable=True)
-            h = AttentionLayer.node_attention(inputs=emb, adj=adj_data[i])
-            h = tf.reshape(h, [self.nodes, emb.shape[1]])
+            h = AttentionLayer.node_attention(inputs=self.emb, adj=adj_data[i])
+            h = tf.reshape(h, [self.nodes, self.emb.shape[1]])
             h1.append(h)
         h1 = tf.concat(h1, 0)
         h1 = tf.reshape(h1, [self.meta, self.nodes, self.init_emb_size])
