@@ -512,39 +512,67 @@ class GEMLayer(layers.Layer):
 		return tf.nn.relu(h1 + h2)
 
 
-class GAT(tf.keras.layers.Layer):
-	def __init__(self, GAT_output_dim, nb_nodes=None, in_drop=0.0, coef_drop=0.0, activation=tf.nn.elu, residual=False):
-		super(GAT, self).__init__()
-		self.activation = activation
-		self.residual = residual
-		self.in_dropout = tf.keras.layers.Dropout(in_drop)
-		self.coef_dropout = tf.keras.layers.Dropout(coef_drop)
-		self.conv_no_bias = tf.keras.layers.Conv1D(GAT_output_dim, 1, use_bias=False)
+
+class GAT(Layer):
+	"""
+	GAT with single head
+        """
+
+	def __init__(self, GAT_output_dim, n_heads, in_drop=0.0, coef_drop=0.0, **kwargs):
+		super(GAT, self).__init__(**kwargs)
+
+		self.GAT_output_dim = GAT_output_dim
+		self.n_heads = n_heads
+		self.in_drop = in_drop
+		self.coef_drop = coef_drop
+
+		# Dropout initialization
+		self.in_dropout_1 = tf.keras.layers.Dropout(1.0 - self.in_drop)
+		self.in_dropout_2 = tf.keras.layers.Dropout(1.0 - self.in_drop)
+		self.coef_dropout = tf.keras.layers.Dropout(1.0 - self.coef_drop)
+
+		# Con1d initialization
+		self.conv_no_bias = tf.keras.layers.Conv1D(self.GAT_output_dim, 1, use_bias=False)
 		self.conv_f1 = tf.keras.layers.Conv1D(1, 1)
 		self.conv_f2 = tf.keras.layers.Conv1D(1, 1)
-		self.conv_residual = tf.keras.layers.Conv1D(GAT_output_dim, 1)
-		self.bias_zero = tf.Variable(tf.zeros(GAT_output_dim))
 
-	def __call__(self, seq, bias_mat):
-		seq = self.in_dropout(seq)
-		seq_fts = self.conv_no_bias(seq)
+		# Add Bias initialization
+		self.add_bias = tf.Variable(tf.zeros(self.GAT_output_dim))
+
+		# Residual initialization
+		self.conv_residual = tf.keras.layers.Conv1D(GAT_output_dim, 1)
+
+
+	def __call__(self, inputs, residual = False):
+
+		x, support = inputs
+		if self.in_drop != 0.0:
+			x = self.in_dropout_1(x)
+		seq_fts = self.conv_no_bias(x)
+
+		# simplest self-attention possible
 		f_1 = self.conv_f1(seq_fts)
 		f_2 = self.conv_f2(seq_fts)
+		logits = f_1 + tf.transpose(f_1, [0, 2, 1])
+		coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + support)
 
-		logits = f_1 + tf.transpose(f_2, [0, 2, 1])
-		coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
-		# dropout
-		coefs = self.coef_dropout(coefs)
-		seq_fts = self.in_dropout(seq_fts)
-		vals = tf.matmul(coefs, seq_fts)
+		if self.coef_drop != 0.0:
+			coefs = self.coef_dropout(coefs)
+		if self.in_drop != 0.0:
+			seq_fts = self.in_dropout_2(seq_fts)
+
+		vals = dot(coefs, seq_fts)
 		vals = tf.cast(vals, dtype=tf.float32)
-		ret = vals + self.bias_zero
-		if self.residual:
-			if seq.shape[-1] != ret.shape[-1]:
-				ret = ret + self.conv_residual(seq)
+		ret = tf.nn.bias_add(vals, self.add_bias)
+
+		# residual connection
+		if residual:
+			if x.shape[-1] != ret.shape[-1]:
+				ret = ret + self.conv_residual(x)
 			else:
-				ret = ret + seq
-		return self.activation(ret)
+				ret = ret + x
+
+		return tf.nn.relu(ret)
 
 
 class GeniePathLayer(keras.Model):
