@@ -591,7 +591,7 @@ class GeniePathLayer(keras.Model):
 		self.lstm_hideen = lstm_hidden
 
 		# GAT initialization
-		self.GAT = GAT(self.GAT_output_dim)
+		self.GAT = GAT(self.GAT_output_dim, self.GAT_heads)
 
 		# RNN initialization
 		cell = tf.keras.layers.LSTMCell(self.lstm_hideen)
@@ -608,18 +608,10 @@ class GeniePathLayer(keras.Model):
 		x, support_= inputs
 
 		# breadth process
-		x = tf.tanh(self.GAT(x, support_))
+		x = tf.tanh(self.GAT((x, support_)))
 
 		# depth process
 		x = self.rnn(x)
 		x = x[0]
 
-
 		return x
-
-
-	# def lazy_forward(self, x, bias_in, h, c):
-	#     x = self.breadth_forward(x, bias_in)
-	#     x, (h, c) = self.depth_forward(x, h, c)
-	#     x = x[0]
-	#     return x, (h, c)
