@@ -26,6 +26,8 @@
 
 **Introduction** 
 
+**May 2021 Update:** The DGFraud has upgraded to TensorFlow 2.0! Please check out [DGFraud-TF2](https://github.com/safe-graph/DGFraud-TF2)
+
 **DGFraud** is a Graph Neural Network (GNN) based toolbox for fraud detection. It integrates the implementation & comparison of state-of-the-art GNN-based fraud detection models. The introduction of implemented models can be found [here](#implemented-models). <!-- (Add introduction blogs links). -->
 
 We welcome contributions on adding new fraud detectors and extending the features of the toolbox. Some of the planned features are listed in [TODO list](#todo-list). 
@@ -105,10 +107,12 @@ For [GraphConsis](https://arxiv.org/abs/2005.00625), we preprocessed [Yelp Spam 
 
 The dataset with `.mat` format is located at `/dataset/YelpChi.zip`. The `.mat` file includes:
 - `net_rur, net_rtr, net_rsr`: three sparse matrices representing three homo-graphs defined in [GraphConsis](https://arxiv.org/abs/2005.00625) paper;
-- `features`: a sparse matrix of 100-dimension Bag-of-words features;
+- `features`: a sparse matrix of 32-dimension handcrafted features;
 - `label`: a numpy array with the ground truth of nodes. `1` represents spam and `0` represents benign.
 
-To get the complete metadata of the Yelp dataset, please send an email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
+The YelpChi data preprocessing details can be found in our [CIKM'20](https://arxiv.org/pdf/2008.08692.pdf) paper.
+To get the complete metadata of the Yelp dataset, please email to [ytongdou@gmail.com](mailto:ytongdou@gmail.com) for inquiry.
+
 
 ## User Guide
 
@@ -174,16 +178,14 @@ The repository is organized as follows:
 
 
 ## TODO List
-- Integrating the Yelp dataset with multiple models
 - Implementing mini-batch training
 - The log loss for GEM model
 - Time-based sampling for GEM
 - Add sampling methods
 - Benchmarking SOTA models
 - Scalable implementation
-- TensorFlow 2.0+ implementation
 - Pytorch implementation
 
 ## How to Contribute
-You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or send email to [bdscsafegraph@gmail.com](mailto:bdscsafegraph@gmail.com) for inquiry.
+You are welcomed to contribute to this open-source toolbox. The detailed instructions will be released soon. Currently, you can create issues or email to [bdscsafegraph@gmail.com](mailto:bdscsafegraph@gmail.com) for inquiry.
 
