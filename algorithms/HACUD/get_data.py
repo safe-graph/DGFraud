@@ -32,8 +32,8 @@ class Data(object):
         for i in range(self.n_metapath):
             z = self.rownetworks[i]
             adj.append(z)
-            u_index.append(z[0])
-            v_index.append(z[1])   
+            u_index.append(np.where(z)[0])
+            v_index.append(np.where(z)[1])   
             self.n_int.append(len(np.where(z)[0]))
         
         self.print_statistics()
